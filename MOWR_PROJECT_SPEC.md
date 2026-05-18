@@ -254,10 +254,41 @@ loosely on the booking — one access answer covers the whole visit.
   back-navigation (idempotent pattern).
 - Reuse established card/control styling and theme tokens.
 
+### Condition-photos screen (step 9)
+Optional. The customer may add current-condition photos showing what each 
+lawn looks like right now, on top of (NOT replacing) the permanent 
+reference photo each lawn area already carries.
+- Per selected lawn area: a card with the lawn name, current-condition 
+  photo thumbnails, and an "add photo" affordance.
+- Multiple condition photos per lawn allowed. Each thumbnail has an 
+  individual remove control. Small gallery-management UI (add/view/remove 
+  individual), not single add-or-replace.
+- Adding a photo offers both camera and gallery (customer picks either).
+- Entirely optional: Continue always enabled; customer can skip the whole 
+  screen. No gate.
+- Stored in BookingDraft keyed by lawn id (list of photo references per 
+  lawn). Persists across back-navigation; default empty.
+- Reuse established card/control styling and theme tokens.
+
+Phase-1 storage reality: no backend in Phase 1. A condition photo is held 
+only as a local device file reference in BookingDraft — not uploaded, not 
+persisted server-side, will not survive reinstall. Acceptable for Phase 1; 
+must not be mistaken for real persistence.
+
+Phase-2 deferred (do NOT implement now): real upload to Supabase storage; 
+image compression/resizing; tying photos to the persisted job for the 
+mower app.
+
+Dependency & native config: first screen needing a third-party 
+camera/gallery package plus Android manifest + iOS Info.plist permission 
+entries. Missing permission config compiles clean but crashes at runtime 
+on first invocation; runtime emulator testing of camera AND gallery is 
+required, static analysis is not sufficient.
+
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
-- Step 9 photo: whether a separate booking-time "current condition" photo 
-  exists, distinct from the permanent per-lawn photo — undecided.
+- Step 9 photo: decided — optional, multiple current-condition photos per 
+  lawn, on top of the permanent per-lawn photo.
 - Stripe capture timing: payment (step 12) precedes mower acceptance 
   (step 13); authorise-then-capture vs capture-upfront undecided.
 - Access granularity (8): decided — per property, not per lawn or per 
