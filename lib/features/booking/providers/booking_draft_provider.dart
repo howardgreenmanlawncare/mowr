@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/booking_draft.dart';
+import '../domain/property_access_model.dart';
 
 class BookingDraftNotifier extends Notifier<BookingDraft> {
   @override
@@ -72,6 +73,44 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
     final updated = Map<String, GrassLength>.from(state.lawnGrassHeights);
     updated[lawnId] = height;
     state = state.copyWith(lawnGrassHeights: Map.unmodifiable(updated));
+  }
+
+  /// Creates a default [PropertyAccess] entry for [state.propertyId] only if
+  /// none exists — preserves any values already set on back-navigation.
+  void initPropertyAccess() {
+    final propertyId = state.propertyId;
+    if (propertyId == null) return;
+    if (state.propertyAccessMap.containsKey(propertyId)) return;
+    final updated = Map<String, PropertyAccess>.from(state.propertyAccessMap);
+    updated[propertyId] = const PropertyAccess();
+    state = state.copyWith(propertyAccessMap: Map.unmodifiable(updated));
+  }
+
+  void toggleAccessPreset(AccessPreset preset) {
+    final propertyId = state.propertyId;
+    if (propertyId == null) return;
+    final current =
+        state.propertyAccessMap[propertyId] ?? const PropertyAccess();
+    final presets = Set<AccessPreset>.from(current.presets);
+    if (presets.contains(preset)) {
+      presets.remove(preset);
+    } else {
+      presets.add(preset);
+    }
+    final updated = Map<String, PropertyAccess>.from(state.propertyAccessMap);
+    updated[propertyId] =
+        current.copyWith(presets: Set.unmodifiable(presets));
+    state = state.copyWith(propertyAccessMap: Map.unmodifiable(updated));
+  }
+
+  void updateAccessNotes(String notes) {
+    final propertyId = state.propertyId;
+    if (propertyId == null) return;
+    final current =
+        state.propertyAccessMap[propertyId] ?? const PropertyAccess();
+    final updated = Map<String, PropertyAccess>.from(state.propertyAccessMap);
+    updated[propertyId] = current.copyWith(notes: notes);
+    state = state.copyWith(propertyAccessMap: Map.unmodifiable(updated));
   }
 
   void updateService({

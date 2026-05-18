@@ -6,6 +6,7 @@ import '../../features/booking/presentation/steps/saved_properties_step.dart';
 import '../../features/booking/presentation/steps/lawn_selection_step.dart';
 import '../../features/booking/presentation/steps/lawn_step.dart';
 import '../../features/booking/presentation/steps/grass_height_step.dart';
+import '../../features/booking/presentation/steps/lawn_access_step.dart';
 import '../../features/booking/presentation/steps/service_step.dart';
 import '../../features/booking/presentation/steps/schedule_step.dart';
 import '../../features/booking/presentation/steps/review_step.dart';
@@ -45,6 +46,10 @@ final router = GoRouter(
     GoRoute(
       path: GrassHeightStepScreen.routePath,
       builder: (context, state) => const GrassHeightStepScreen(),
+    ),
+    GoRoute(
+      path: LawnAccessStepScreen.routePath,
+      builder: (context, state) => const LawnAccessStepScreen(),
     ),
     GoRoute(
       path: ServiceStepScreen.routePath,

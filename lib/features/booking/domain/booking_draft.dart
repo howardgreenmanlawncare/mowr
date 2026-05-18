@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'property_access_model.dart';
 
 // LawnArea (the domain entity) lives in lawn_area_model.dart.
 // The draft holds only selected lawn IDs, not embedded lawn objects.
@@ -27,6 +28,7 @@ class BookingDraft {
     this.accessNotes,
     this.selectedLawnIds = const [],
     this.lawnGrassHeights = const {},
+    this.propertyAccessMap = const {},
     this.serviceId,
     this.selectedExtraIds = const [],
     this.accessType,
@@ -51,6 +53,10 @@ class BookingDraft {
   /// for each selected lawn; set at the grass-height convergence step.
   final Map<String, GrassLength> lawnGrassHeights;
 
+  /// Access information keyed by property ID. Stored per-property so it can
+  /// prefill for returning customers (Phase 2+).
+  final Map<String, PropertyAccess> propertyAccessMap;
+
   final String? serviceId;
   final List<String> selectedExtraIds;
   final AccessType? accessType;
@@ -65,6 +71,7 @@ class BookingDraft {
     String? accessNotes,
     List<String>? selectedLawnIds,
     Map<String, GrassLength>? lawnGrassHeights,
+    Map<String, PropertyAccess>? propertyAccessMap,
     String? serviceId,
     List<String>? selectedExtraIds,
     AccessType? accessType,
@@ -79,6 +86,7 @@ class BookingDraft {
       accessNotes: accessNotes ?? this.accessNotes,
       selectedLawnIds: selectedLawnIds ?? this.selectedLawnIds,
       lawnGrassHeights: lawnGrassHeights ?? this.lawnGrassHeights,
+      propertyAccessMap: propertyAccessMap ?? this.propertyAccessMap,
       serviceId: serviceId ?? this.serviceId,
       selectedExtraIds: selectedExtraIds ?? this.selectedExtraIds,
       accessType: accessType ?? this.accessType,

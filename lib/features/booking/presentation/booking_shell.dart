@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-const int kBookingStepCount = 8;
+const int kBookingStepCount = 9;
 
 const int kStepProperties = 0;    // returning-customer path first screen
 const int kStepPostcode = 0;      // guest path first screen
@@ -9,10 +9,11 @@ const int kStepAddress = 1;
 const int kStepLawnSelection = 2; // returning-customer path
 const int kStepLawn = 3;          // guest path: lawn creation
 const int kStepGrassHeight = 3;   // convergence point (both paths)
-const int kStepService = 4;
-const int kStepSchedule = 5;
-const int kStepReview = 6;
-const int kStepConfirmation = 7;
+const int kStepLawnAccess = 4;
+const int kStepService = 5;
+const int kStepSchedule = 6;
+const int kStepReview = 7;
+const int kStepConfirmation = 8;
 
 /// Shared scaffold for every booking step.
 ///

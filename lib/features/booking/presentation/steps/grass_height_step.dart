@@ -6,6 +6,7 @@ import '../../domain/lawn_area_model.dart';
 import '../../mock/mock_properties.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
+import 'lawn_access_step.dart';
 
 class GrassHeightStepScreen extends ConsumerStatefulWidget {
   const GrassHeightStepScreen({super.key});
@@ -48,7 +49,7 @@ class _GrassHeightStepScreenState
     return BookingShell(
       stepIndex: kStepGrassHeight,
       stepLabel: 'Grass height',
-      onContinue: () => context.push('/booking/service'),
+      onContinue: () => context.push(LawnAccessStepScreen.routePath),
       body: _GrassHeightBody(
         lawns: selectedLawns,
         grassHeights: grassHeights,
