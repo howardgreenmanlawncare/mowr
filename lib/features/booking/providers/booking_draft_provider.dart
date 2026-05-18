@@ -113,6 +113,26 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
     state = state.copyWith(propertyAccessMap: Map.unmodifiable(updated));
   }
 
+  void addConditionPhoto(String lawnId, String filePath) {
+    final updated =
+        Map<String, List<String>>.from(state.lawnConditionPhotos);
+    final existing = List<String>.from(updated[lawnId] ?? const []);
+    existing.add(filePath);
+    updated[lawnId] = List.unmodifiable(existing);
+    state =
+        state.copyWith(lawnConditionPhotos: Map.unmodifiable(updated));
+  }
+
+  void removeConditionPhoto(String lawnId, String filePath) {
+    final updated =
+        Map<String, List<String>>.from(state.lawnConditionPhotos);
+    final existing = List<String>.from(updated[lawnId] ?? const []);
+    existing.remove(filePath);
+    updated[lawnId] = List.unmodifiable(existing);
+    state =
+        state.copyWith(lawnConditionPhotos: Map.unmodifiable(updated));
+  }
+
   void updateService({
     required String serviceId,
     required List<String> selectedExtraIds,

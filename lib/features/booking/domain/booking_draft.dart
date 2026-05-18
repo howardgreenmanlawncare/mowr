@@ -29,6 +29,7 @@ class BookingDraft {
     this.selectedLawnIds = const [],
     this.lawnGrassHeights = const {},
     this.propertyAccessMap = const {},
+    this.lawnConditionPhotos = const {},
     this.serviceId,
     this.selectedExtraIds = const [],
     this.accessType,
@@ -57,6 +58,10 @@ class BookingDraft {
   /// prefill for returning customers (Phase 2+).
   final Map<String, PropertyAccess> propertyAccessMap;
 
+  /// Current-condition photo file paths keyed by lawn ID. Phase-1 local
+  /// paths only — not uploaded, not persistent across reinstall.
+  final Map<String, List<String>> lawnConditionPhotos;
+
   final String? serviceId;
   final List<String> selectedExtraIds;
   final AccessType? accessType;
@@ -72,6 +77,7 @@ class BookingDraft {
     List<String>? selectedLawnIds,
     Map<String, GrassLength>? lawnGrassHeights,
     Map<String, PropertyAccess>? propertyAccessMap,
+    Map<String, List<String>>? lawnConditionPhotos,
     String? serviceId,
     List<String>? selectedExtraIds,
     AccessType? accessType,
@@ -87,6 +93,7 @@ class BookingDraft {
       selectedLawnIds: selectedLawnIds ?? this.selectedLawnIds,
       lawnGrassHeights: lawnGrassHeights ?? this.lawnGrassHeights,
       propertyAccessMap: propertyAccessMap ?? this.propertyAccessMap,
+      lawnConditionPhotos: lawnConditionPhotos ?? this.lawnConditionPhotos,
       serviceId: serviceId ?? this.serviceId,
       selectedExtraIds: selectedExtraIds ?? this.selectedExtraIds,
       accessType: accessType ?? this.accessType,

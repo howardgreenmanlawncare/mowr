@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/property_access_model.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
+import 'condition_photos_step.dart';
 
 class LawnAccessStepScreen extends ConsumerStatefulWidget {
   const LawnAccessStepScreen({super.key});
@@ -60,7 +61,7 @@ class _LawnAccessStepScreenState extends ConsumerState<LawnAccessStepScreen> {
       stepLabel: 'Lawn access',
       bottomBar: _AccessBottomBar(
         canContinue: canContinue,
-        onContinue: () => context.push('/booking/service'),
+        onContinue: () => context.push(ConditionPhotosStepScreen.routePath),
       ),
       body: _LawnAccessBody(
         access: access,
