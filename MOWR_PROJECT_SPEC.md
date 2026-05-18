@@ -164,6 +164,28 @@ Both paths converge at grass height; from there the flow is linear.
 13. All set — awaiting a mower to accept
 Steps 4–6 are a repeating sub-flow, not three linear screens.
 
+### Saved-properties screen (returning-customer entry)
+First screen on the returning-customer path. Precedes lawn selection.
+- Shown only when a logged-in customer has one or more saved properties.
+- Lists saved properties as cards. Each card shows: the property address; 
+  a lawn count as text (e.g. "3 lawns"). No thumbnail for now.
+- Tapping a property writes its property_id into BookingDraft and advances 
+  to the lawn selection screen (which then shows that property's lawns).
+- "Add a new property" routes into the address-entry flow (same flow a 
+  guest uses).
+- Select-or-add only. No edit/delete of properties here; property 
+  management is a separate later surface, out of scope for the booking flow.
+- If the customer has zero saved properties, this screen is not shown; they 
+  go straight to add-property (address entry). See OPEN QUESTION.
+
+### OPEN QUESTION — do NOT implement until decided
+- Guest first booking auto-save as property? When a guest completes a 
+  booking and an account is created at the payment step, it is undecided 
+  whether that booking's address + lawn areas are auto-saved as the 
+  customer's first property. The "skip to add-property when zero 
+  properties" behaviour is correct as specified but its real-world impact 
+  depends on this. Resolve before the payment step (step 12) is built.
+
 ### Lawn selection screen (returning-property path only)
 - Shown only when a returning customer picks a saved property.
 - Property's saved lawn areas shown as cards: photo, name, area, 
