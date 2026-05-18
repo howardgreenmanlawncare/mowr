@@ -287,13 +287,19 @@ required, static analysis is not sufficient.
 
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
-- Step 9 photo: decided — optional, multiple current-condition photos per 
-  lawn, on top of the permanent per-lawn photo.
 - Stripe capture timing: payment (step 12) precedes mower acceptance 
   (step 13); authorise-then-capture vs capture-upfront undecided.
-- Access granularity (8): decided — per property, not per lawn or per 
-  booking. (Grass height (7) is also decided: per lawn area.)
 - Mower assignment & scheduling: not decided.
+
+### Resolved decisions (booking flow)
+- Step 9 condition photos: optional, multiple current-condition photos per 
+  selected lawn area, on top of (not replacing) the permanent per-lawn 
+  reference photo. Stored in BookingDraft keyed by lawn id.
+- Lawn access granularity (step 8): per property, not per lawn area and 
+  not per booking — one access answer covers the whole visit. Enables 
+  prefill for returning customers in Phase 2.
+- Grass-height granularity (step 7): per selected lawn area, not per 
+  booking. Three options: Low / Medium / High; defaults to Medium.
 
 ## 6. Conventions for Claude Code
 
