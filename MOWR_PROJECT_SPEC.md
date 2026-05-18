@@ -119,6 +119,70 @@ Same destination (all three roles) — sequenced so something real works early.
 First milestone to aim at: end of Phase 3 — a real, signed-in, paying customer
 app, with mower recruitment intake already live.
 
+## Booking Flow (Customer)
+
+### Auth model — deferred (guest-to-account)
+- A guest can complete the entire booking without an account.
+- The account is created at the payment step: tapping the payment button 
+  takes the user to a create-card page; the payment method is saved on the 
+  newly created account.
+- A logged-in returning customer instead starts at a saved-properties list.
+- Auth is a gate around the booking flow, not a step inside BookingShell. 
+  The booking draft must survive account creation at the payment step.
+
+### Properties are first-class
+- A customer can have multiple properties. property_id must exist in the 
+  data model and on the booking draft from day one.
+- Every lawn area is permanent to its property and carries a photo.
+- A booking references a SUBSET of a property's saved lawn areas (the draft 
+  holds selected lawn ids, not flat lawn fields).
+- Selecting a saved property with existing lawns lets a returning customer 
+  skip lawn creation and go straight to lawn selection.
+
+### Two entry paths, converging
+Returning customer (logged in): saved-properties list -> pick a property 
+(or "Add a new property") -> lawn selection screen -> joins main flow at 
+grass height.
+Guest / "Add a new property": address entry -> confirm on map -> 
+lawn-creation loop (draw boundary -> name -> "another?") -> joins main 
+flow at grass height.
+Both paths converge at grass height; from there the flow is linear.
+
+### Full step list (real flow)
+1. (Returning only) Saved-properties list
+2. Address of property to be serviced
+3. Confirm address on a map
+4. Create lawn area by drawing a boundary on a map (captures area + perimeter)
+5. Name the lawn
+6. "Another lawn area?" — if yes, loop to step 4
+7. Current grass height — low / medium / overgrown (with example images)
+8. Access to the lawn + optional free-text access notes
+9. Photos of each lawn area (optional) — SEE OPEN QUESTIONS
+10. When they want it done (e.g. ASAP) + can they leave access if not home
+11. Review and price
+12. Payment (account created here for guests; card saved)
+13. All set — awaiting a mower to accept
+Steps 4–6 are a repeating sub-flow, not three linear screens.
+
+### Lawn selection screen (returning-property path only)
+- Shown only when a returning customer picks a saved property.
+- Property's saved lawn areas shown as cards: photo, name, area, 
+  selected/unselected state. Tapping toggles inclusion. Default: all selected.
+- "Add another lawn area" routes into lawn-creation (steps 4–5) and returns 
+  with the new lawn added, saved permanently to the property.
+- Persistent bottom bar: "X of Y selected"; Continue disabled at zero.
+- Selection state lives in BookingDraft (Riverpod), not local widget state.
+
+### OPEN QUESTIONS — do NOT implement until decided
+- Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
+- Step 9 photo: whether a separate booking-time "current condition" photo 
+  exists, distinct from the permanent per-lawn photo — undecided.
+- Stripe capture timing: payment (step 12) precedes mower acceptance 
+  (step 13); authorise-then-capture vs capture-upfront undecided.
+- Per-lawn vs per-booking: whether grass height (7) and access (8) are 
+  per booking or per lawn area is undecided. Photos (9) appear per lawn area.
+- Mower assignment & scheduling: not decided.
+
 ## 6. Conventions for Claude Code
 
 - Feature-first folder structure (`lib/features/booking/`, `lib/features/auth/`,
