@@ -290,11 +290,21 @@ required, static analysis is not sufficient.
 - Stripe capture timing: payment (step 12) precedes mower acceptance 
   (step 13); authorise-then-capture vs capture-upfront undecided.
 - Mower assignment & scheduling: not decided.
+- Orphaned condition photos at confirmation: because photos are retained 
+  when a lawn is deselected, the booking may carry condition photos for 
+  lawns not in the final booking. At confirmation/submission (step 12/13) 
+  and Phase-2 upload, these must be reconciled — undecided whether to 
+  discard them, retain-but-flag, or simply exclude them from what the 
+  mower sees. MUST be resolved before step 12/13 / Phase-2 photo upload 
+  is built.
 
 ### Resolved decisions (booking flow)
 - Step 9 condition photos: optional, multiple current-condition photos per 
   selected lawn area, on top of (not replacing) the permanent per-lawn 
   reference photo. Stored in BookingDraft keyed by lawn id.
+- Condition-photo retention: condition photos persist on a lawn even if 
+  that lawn is later deselected from the booking. They are intentionally 
+  NOT cleared on deselection, to avoid losing customer-entered work.
 - Lawn access granularity (step 8): per property, not per lawn area and 
   not per booking — one access answer covers the whole visit. Enables 
   prefill for returning customers in Phase 2.
