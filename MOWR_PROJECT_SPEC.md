@@ -128,6 +128,133 @@ app, with mower recruitment intake already live.
 - Developer preference from Phase 2 onward is schema-first. Mock-first is 
   Phase 1 only, chosen because the booking flow was still being designed.
 
+## Marketplace Model — MOWR
+
+### §1 — What kind of marketplace this is
+MOWR is a two-sided marketplace. The three parties are:
+- **Customer** — posts a job by completing the booking flow and paying.
+- **Independent mower** — a vetted sole trader or individual who accepts 
+  and completes jobs.
+- **Platform (MOWR)** — sets prices, vets mowers, processes payments, 
+  takes a commission.
+
+### §2 — Decided mechanics
+
+**Pricing**
+Platform-set, not mower-set. Customers never haggle; a price is shown at 
+step 11 (Review & Pay) before payment. The pricing formula is undecided 
+(see OPEN QUESTIONS below), but the principle is locked.
+
+**Job broadcast & acceptance**
+New jobs are broadcast to all eligible nearby mowers simultaneously. The 
+first mower to tap "Accept" claims the job. This is the decided mechanic; 
+no bidding, no manual admin assignment.
+
+**Mower vetting**
+Mowers apply and are vetted by admin before their first job. A mower 
+account in `pending` or `rejected` status cannot receive or accept jobs.
+
+**No-acceptance handling**
+If no mower accepts within a broadcast window, the job is re-broadcast or 
+admin is alerted. The broadcast window duration is undecided (see OPEN 
+QUESTIONS).
+
+**Availability**
+Mowers declare availability. Jobs are only broadcast to available mowers. 
+Availability granularity is undecided (see OPEN QUESTIONS).
+
+### §3 — Job lifecycle (state machine)
+
+```
+draft → confirmed → broadcast → accepted → in_progress → completed
+                  ↓                ↓
+               expired          cancelled
+```
+
+| State | Triggered by |
+|-------|-------------|
+| `draft` | Customer starts booking flow |
+| `confirmed` | Payment captured / authorised |
+| `broadcast` | System sends job to eligible mowers |
+| `accepted` | First mower taps Accept (atomic claim) |
+| `in_progress` | Mower taps Start on arrival |
+| `completed` | Mower taps Complete |
+| `expired` | No acceptance within broadcast window |
+| `cancelled` | Customer cancels (pre-acceptance), or admin |
+
+### §4 — Concurrent acceptance (technical constraint)
+Multiple mowers may tap Accept simultaneously. The assignment MUST be 
+server-authoritative: a single atomic DB operation (e.g. conditional 
+UPDATE with `WHERE status = 'broadcast'`) ensures exactly one mower is 
+assigned. First write wins; all others receive a rejection response and 
+the job disappears from their queue. Client-side "first tap" is 
+insufficient — there will be races.
+
+### §5 — Stripe Connect (decided principles; mechanism open)
+
+**Decided**
+- Payments go through Stripe Connect so platform commission is split 
+  server-side at charge time, not via manual bank transfers.
+- Mowers are Stripe Express accounts (lighter onboarding than Custom).
+- The platform takes a commission percentage (exact % undecided — see 
+  OPEN QUESTIONS).
+- No manual payroll; Stripe handles mower payouts.
+
+**OPEN — payment mechanism (do NOT implement until resolved)**
+The auth-hold problem: payment is taken at booking (step 12), but the 
+mower hasn't accepted yet (step 13). Four candidate directions:
+
+1. **Capture-upfront** — charge immediately at booking; refund if no 
+   mower accepts. Simple but refunds have latency / card issuer friction.
+2. **Authorise-then-capture** — auth hold at booking; capture when mower 
+   accepts. Auth holds expire (~7 days); risky if acceptance is slow.
+3. **Charge + escrow** — charge immediately; hold funds in Stripe balance 
+   until acceptance/completion. Avoids refunds but adds Stripe Treasury 
+   complexity.
+4. **Charge at acceptance** — save card at booking; charge only when a 
+   mower accepts. Customer could dispute "silent" charge after delay.
+
+This is a load-bearing architectural decision. MUST be resolved before 
+step 12 and the Connect integration are built.
+
+### §6 — Mower side (largely unspecified)
+The mower app surface is Phase 4. What is decided:
+- Mowers see broadcast jobs within a configurable radius.
+- Accept button triggers the atomic DB claim.
+- Job detail includes: address, lawn areas, grass height, access notes, 
+  condition photos.
+- Mower status machine: applied → pending → approved → active | suspended.
+
+What is NOT yet decided: scheduling UI, job history, earnings dashboard, 
+comms model.
+
+### §7 — Scope & sequencing note
+The marketplace mechanics (broadcast, atomic accept, Stripe Connect) are 
+Phase 3–4. Phase 1 (current) is UI-only mock data. Phase 2 is 
+schema + auth. Nothing in this section should be built before its phase.
+
+OPEN items in this section MUST NOT be implemented until resolved — 
+several are load-bearing, not edge cases. In particular: the payment 
+mechanism (§5) and the Connect integration MUST NOT be built until the 
+auth-hold trade-off is resolved.
+
+### OPEN QUESTIONS — marketplace model (do NOT implement until decided)
+- **Pricing formula**: inputs to the formula (area? perimeter? grass 
+  height? distance? time-of-day?) and the formula itself are undecided. 
+  Step 11 (pricing display) cannot be built until resolved.
+- **Availability granularity**: time slots? Day-level on/off? Shift-based? 
+  Undecided.
+- **Mower eligibility for broadcast**: radius only, or also specialisms / 
+  equipment / ratings threshold? Undecided.
+- **Payment mechanism**: see §5 — four candidates, none chosen yet.
+- **Payout timing**: immediate on job completion, batched daily/weekly, or 
+  after customer review period? Undecided.
+- **Commission %**: undecided.
+- **Broadcast window**: how long before a job is re-broadcast or escalated 
+  to admin? Undecided.
+- **Cancellation policy**: customer cancels after mower accepts — partial 
+  refund? Full refund? Mower compensation? Undecided.
+
 ## Booking Flow (Customer)
 
 ### Auth model — deferred (guest-to-account)
@@ -287,9 +414,8 @@ required, static analysis is not sufficient.
 
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
-- Stripe capture timing: payment (step 12) precedes mower acceptance 
-  (step 13); authorise-then-capture vs capture-upfront undecided.
-- Mower assignment & scheduling: not decided.
+- Payment: principles decided, mechanism open pending Stripe investigation — see Marketplace model §5.
+- Mower assignment: decided — see Marketplace model (broadcast, first-to-accept). Sub-questions (availability, eligibility, broadcast window) tracked there.
 - Orphaned condition photos at confirmation: because photos are retained 
   when a lawn is deselected, the booking may carry condition photos for 
   lawns not in the final booking. At confirmation/submission (step 12/13) 
