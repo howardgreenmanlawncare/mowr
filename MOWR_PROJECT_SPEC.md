@@ -238,6 +238,77 @@ several are load-bearing, not edge cases. In particular: the payment
 mechanism (§5) and the Connect integration MUST NOT be built until the 
 auth-hold trade-off is resolved.
 
+### §8 — Completion & payment model
+
+**Completion model — DECIDED**
+
+A job cannot move to `completed` unless the mower has uploaded BOTH a 
+before photo and an after photo. Photos are a hard gate on the 
+`in_progress → completed` transition, not optional.
+These before/after photos become part of the job record and are the 
+evidence of record for whether the job was done.
+Concrete mower-side requirement: the mower app MUST capture before and 
+after photos; completion is impossible without them.
+
+**Payment release — DECIDED**
+
+On photo upload (completion), the mower's payment releases 
+automatically. There is NO per-job review gate before release.
+Photos are evidence-on-file: reviewed only IF the customer complains, 
+not on every job. Deliberate — a universal review gate does not scale 
+and would strand mower payouts.
+Mower is paid out on completion (consistent with the payout-on-
+completion principle in the marketplace section §5).
+The customer has NO time-limited pressure window forcing them to act to 
+release payment. Release does not depend on customer action.
+
+**RETIRED decision (superseded — must not resurface)**
+An earlier design answer ("mower marks done, auto-confirms if customer 
+doesn't dispute in X time") is SUPERSEDED by the photo-evidenced model 
+above and is retired. There is no customer dispute countdown. Completion 
+is proven by before/after photos, not by customer responsiveness or a 
+timer. Do not reintroduce a dispute-window mechanic.
+
+**OPEN — clawback collision (deferred by project owner; do NOT build)**
+These three, together, form an unbounded mower-trust hole and are NOT YET 
+resolved:
+
+1. Payment releases automatically on photo upload.
+2. The customer has no time limit to raise a complaint.
+3. (Earlier stated intent) money is released then reversible — "clawed 
+   back if later shown not done".
+
+Items 1 and 2 are decided. Item 3, combined with 1 and 2, means a mower 
+could be paid, spend the money, and face an open-ended reversal of earned 
+income — the fastest known way to destroy marketplace supply-side trust.
+Definition of done (must be resolved before the payout/clawback system 
+is built): choose the mechanism that breaks the collision — e.g. (a) 
+bound the clawback window while letting complaints remain untimed, with 
+MOWR absorbing late complaints; (b) a short hold before final release, no 
+clawback; (c) clawback only against future earnings, never already-paid.
+Until chosen, the payout reversal/clawback path MUST NOT be built.
+
+**OPEN — payment mechanism (gated on Stripe investigation)**
+The actual money mechanism (hold/auth/capture/Connect specifics) remains 
+open pending the project owner's Stripe investigation, per marketplace 
+section §5. The principles above are stable; the mechanism is not.
+
+**Unscoped Phase-2 idea (recorded, NOT decided, does NOT change anything)**
+AI before/after photo comparison. Recorded as a candidate only.
+
+NOT a decision. Does NOT alter the DECIDED ungated automatic-release 
+model above. Specifically, this is NOT to be implemented as an 
+AI-gates-payment mechanism (that would reverse a decided item).
+If ever pursued, the safe framing is assistive-only: AI flags suspect 
+jobs for human review, never automatically withholds a mower's payment. 
+(Note: "flag for human review" implies a staffed review role at scale — 
+to be accounted for if pursued, not hand-waved.)
+Deep Phase-2: depends on the mower app, photo upload, the payout system, 
+and an AI integration — none of which exist. Sits on top of two 
+unresolved load-bearing items (clawback collision, Stripe mechanism). 
+Status: parked. No design or build until the above opens are resolved 
+and it is explicitly scoped as its own decision.
+
 ### OPEN QUESTIONS — marketplace model (do NOT implement until decided)
 - **Pricing formula**: inputs to the formula (area? perimeter? grass 
   height? distance? time-of-day?) and the formula itself are undecided. 
@@ -246,9 +317,10 @@ auth-hold trade-off is resolved.
   Undecided.
 - **Mower eligibility for broadcast**: radius only, or also specialisms / 
   equipment / ratings threshold? Undecided.
-- **Payment mechanism**: see §5 — four candidates, none chosen yet.
-- **Payout timing**: immediate on job completion, batched daily/weekly, or 
-  after customer review period? Undecided.
+- **Payment mechanism & clawback**: see §5 (capture mechanism, four 
+  candidates) and §8 (clawback collision). Neither resolved. MUST NOT 
+  build payout/clawback path until §8 clawback collision is resolved; 
+  MUST NOT build payment capture until §5 mechanism is chosen.
 - **Commission %**: undecided.
 - **Broadcast window**: how long before a job is re-broadcast or escalated 
   to admin? Undecided.
@@ -414,7 +486,9 @@ required, static analysis is not sufficient.
 
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
-- Payment: principles decided, mechanism open pending Stripe investigation — see Marketplace model §5.
+- Payment: payout model decided (see Marketplace model §8); payment 
+  mechanism open (see §5); clawback collision open (see §8). Steps 12/13 
+  MUST NOT be built until §5 and §8 opens are resolved.
 - Mower assignment: decided — see Marketplace model (broadcast, first-to-accept). Sub-questions (availability, eligibility, broadcast window) tracked there.
 - Orphaned condition photos at confirmation: because photos are retained 
   when a lawn is deselected, the booking may carry condition photos for 
