@@ -119,6 +119,15 @@ Same destination (all three roles) — sequenced so something real works early.
 First milestone to aim at: end of Phase 3 — a real, signed-in, paying customer
 app, with mower recruitment intake already live.
 
+## Build sequencing (decided)
+- Phase 1 continues mock-first, no backend, as planned. Properties and lawn 
+  areas are mocked in Phase 1.
+- Phase 2 leads with the backend. Real Supabase property and lawn_area 
+  tables; selection screens query per-property from the database rather 
+  than passing lists between screens in memory.
+- Developer preference from Phase 2 onward is schema-first. Mock-first is 
+  Phase 1 only, chosen because the booking flow was still being designed.
+
 ## Booking Flow (Customer)
 
 ### Auth model — deferred (guest-to-account)
@@ -240,3 +249,14 @@ First screen on the returning-customer path. Precedes lawn selection.
 - Mower payouts/payroll automation (handle manually early).
 
 (Ratings and push notifications were moved INTO v1 — see Phase 4.)
+
+## OPEN QUESTION — mower offline access (deferred to Phase 2 design)
+- Mowers work in the field with poor/no signal and need access to accepted 
+  jobs (address, lawn details, access notes, photos) while offline. Flagged 
+  as a genuine requirement, NOT a decided feature.
+- Scope undecided: (a) read-only cached job data for the mower role 
+  (lighter, likely sufficient); (b) full offline writes with sync 
+  (significant: conflict handling, sync queue, deferred uploads).
+- Customers and admin assumed online-only unless decided otherwise.
+- Shapes the Phase 2 schema and client data layer; resolve during Phase 2 
+  backend design, not after.
