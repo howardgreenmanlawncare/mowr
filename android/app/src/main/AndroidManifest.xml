@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- image_picker: camera capture -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- image_picker: photo library on Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- image_picker: photo library on Android ≤12 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <application
         android:label="mowr"
         android:name="${applicationName}"
