@@ -92,6 +92,34 @@ lib/
 
 ---
 
+## Screen wiring (mandatory)
+
+When building a screen that consumes data another screen produces, or
+produces data another screen consumes:
+
+- Wire the real shared-state contract (the BookingDraft / Riverpod
+  provider) between the screens. Read inputs from the draft; write outputs
+  to the draft.
+- Do NOT create a standalone mock data list inside a screen that shadows or
+  duplicates data the draft already carries (e.g. a local _mockLawns in a
+  screen that should read the selected property's lawns from the draft).
+- Mock only true leaf data that no other screen produces — never mock the
+  seam between two screens.
+- When a new screen connects to an existing screen, explicitly inspect that
+  existing screen and rewire it if it still uses standalone mock data that
+  the new screen's contract supersedes. State this in the summary.
+- Provide a verification checkable by eye: mock data on either side of a
+  seam must be visibly distinct (different names/counts) so a wrong or
+  missing wiring is obvious when navigating, not hidden behind
+  identical-looking data.
+
+Rationale: screens built in isolation with mocked inputs are individually
+correct, but the seam between a screen and the one that feeds it is where
+data-wiring bugs hide. This makes wiring the seam a build-time requirement,
+not a review-time catch.
+
+---
+
 ## Design system tokens
 
 | Token | Value |
