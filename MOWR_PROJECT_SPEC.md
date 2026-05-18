@@ -211,9 +211,9 @@ selection) and guest (via lawn creation). From here the flow is linear.
   Consistent with all other lawn attributes being per-lawn.
 - One adaptive screen: a vertical list of the booking's selected lawn 
   areas. Each row shows the lawn name and a three-option control: 
-  Low / Medium / Overgrown, preset to Medium.
+  Low / Medium / High, preset to Medium.
 - The customer adjusts only exceptions; untouched lawns stay Medium.
-- Example images (low/medium/overgrown reference) shown ONCE as a shared 
+- Example images (low/medium/high reference) shown ONCE as a shared 
   reference the customer can open — NOT repeated per lawn row. Placeholders 
   until real images supplied.
 - Every lawn defaults to Medium, so there is no mandatory-selection gate: 
@@ -223,14 +223,13 @@ selection) and guest (via lawn creation). From here the flow is linear.
   selection).
 
 ### CONSTRAINT on the pricing/review step (step 11) — must honour
-The Medium default means a customer can reach pricing with a lawn still at 
-Medium they never confirmed and that may actually be overgrown. If pricing 
-is keyed off grass height this causes underpayment and a larger job than 
-sold. The pricing/review step MUST surface per-lawn grass height 
-prominently for explicit confirmation before payment; a never-adjusted 
-default must not be treated as silently confirmed. Constraint on the 
-undecided pricing model, recorded so it is not lost. Does not change the 
-grass-height screen itself.
+The Medium default means a customer can reach pricing with a lawn still set 
+to Medium that they never actively confirmed but which is in reality a much 
+bigger, overgrown job (now labelled "High" in the UI). If pricing is keyed 
+off grass height, this causes the customer to underpay and the mower to 
+face a larger job than was sold. The pricing/review step MUST surface 
+per-lawn grass height prominently for explicit confirmation before payment; 
+a never-adjusted default must not be treated as silently confirmed.
 
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
