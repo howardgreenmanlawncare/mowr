@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 // LawnArea (the domain entity) lives in lawn_area_model.dart.
 // The draft holds only selected lawn IDs, not embedded lawn objects.
 
-enum GrassLength { low, medium, overgrown }
+enum GrassLength { low, medium, high }
 
 enum AccessType { straightforward, restricted, noSideAccess }
 

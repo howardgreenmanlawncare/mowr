@@ -146,7 +146,7 @@ class _ExampleImagesCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 _ExampleTile(
-                  label: 'Overgrown',
+                  label: 'High',
                   color: Colors.green.shade600,
                   iconSize: 48,
                 ),
@@ -245,26 +245,29 @@ class _LawnHeightCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            SegmentedButton<GrassLength>(
-              segments: const [
-                ButtonSegment(
-                  value: GrassLength.low,
-                  label: Text('Low'),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<GrassLength>(
+                segments: const [
+                  ButtonSegment(
+                    value: GrassLength.low,
+                    label: Text('Low'),
+                  ),
+                  ButtonSegment(
+                    value: GrassLength.medium,
+                    label: Text('Medium'),
+                  ),
+                  ButtonSegment(
+                    value: GrassLength.high,
+                    label: Text('High'),
+                  ),
+                ],
+                selected: {height},
+                onSelectionChanged: (values) => onChanged(values.first),
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor: cs.primaryContainer,
+                  selectedForegroundColor: cs.onPrimaryContainer,
                 ),
-                ButtonSegment(
-                  value: GrassLength.medium,
-                  label: Text('Medium'),
-                ),
-                ButtonSegment(
-                  value: GrassLength.overgrown,
-                  label: Text('Overgrown'),
-                ),
-              ],
-              selected: {height},
-              onSelectionChanged: (values) => onChanged(values.first),
-              style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: cs.primaryContainer,
-                selectedForegroundColor: cs.onPrimaryContainer,
               ),
             ),
           ],
