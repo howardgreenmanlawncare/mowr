@@ -204,14 +204,42 @@ First screen on the returning-customer path. Precedes lawn selection.
 - Persistent bottom bar: "X of Y selected"; Continue disabled at zero.
 - Selection state lives in BookingDraft (Riverpod), not local widget state.
 
+### Grass-height screen (step 7 — convergence point)
+Reached by both entry paths: returning-customer (via property -> lawn 
+selection) and guest (via lawn creation). From here the flow is linear.
+- Grass height is captured per selected lawn area, not once per booking. 
+  Consistent with all other lawn attributes being per-lawn.
+- One adaptive screen: a vertical list of the booking's selected lawn 
+  areas. Each row shows the lawn name and a three-option control: 
+  Low / Medium / Overgrown, preset to Medium.
+- The customer adjusts only exceptions; untouched lawns stay Medium.
+- Example images (low/medium/overgrown reference) shown ONCE as a shared 
+  reference the customer can open — NOT repeated per lawn row. Placeholders 
+  until real images supplied.
+- Every lawn defaults to Medium, so there is no mandatory-selection gate: 
+  Continue is always enabled.
+- Per-lawn grass height written into BookingDraft keyed by lawn id; must 
+  persist across back-navigation (same idempotent pattern as lawn 
+  selection).
+
+### CONSTRAINT on the pricing/review step (step 11) — must honour
+The Medium default means a customer can reach pricing with a lawn still at 
+Medium they never confirmed and that may actually be overgrown. If pricing 
+is keyed off grass height this causes underpayment and a larger job than 
+sold. The pricing/review step MUST surface per-lawn grass height 
+prominently for explicit confirmation before payment; a never-adjusted 
+default must not be treated as silently confirmed. Constraint on the 
+undecided pricing model, recorded so it is not lost. Does not change the 
+grass-height screen itself.
+
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
 - Step 9 photo: whether a separate booking-time "current condition" photo 
   exists, distinct from the permanent per-lawn photo — undecided.
 - Stripe capture timing: payment (step 12) precedes mower acceptance 
   (step 13); authorise-then-capture vs capture-upfront undecided.
-- Per-lawn vs per-booking: whether grass height (7) and access (8) are 
-  per booking or per lawn area is undecided. Photos (9) appear per lawn area.
+- Per-lawn vs per-booking: whether access (8) is per booking or per lawn 
+  area is undecided. (Grass height (7) is decided: per lawn area.)
 - Mower assignment & scheduling: not decided.
 
 ## 6. Conventions for Claude Code
