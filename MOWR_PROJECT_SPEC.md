@@ -231,14 +231,37 @@ face a larger job than was sold. The pricing/review step MUST surface
 per-lawn grass height prominently for explicit confirmation before payment; 
 a never-adjusted default must not be treated as silently confirmed.
 
+### Lawn access screen (step 8)
+Single screen. Access is captured per property, not per lawn area and not 
+loosely on the booking — one access answer covers the whole visit.
+- Multi-select preset options, any combination: Front (open access); Side 
+  gate; Locked gate / needs code; Through garage; Other.
+- A free-text notes field for specifics presets cannot capture (gate 
+  codes, dog, parking).
+- Notes are conditionally required: normally optional; REQUIRED if "Locked 
+  gate / needs code" OR "Other" is among the selected presets.
+- Continue is gated on that rule and must re-evaluate dynamically as 
+  presets are toggled:
+  - Only non-gating presets selected -> notes optional -> Continue enabled.
+  - Gating preset (Locked/Other) added -> notes required -> Continue 
+    DISABLES until notes non-empty -> re-enables once notes filled.
+  - Gating preset later deselected -> notes optional again -> Continue 
+    re-enables even if notes cleared.
+  - Must work in BOTH directions; enabling on required-and-filled but 
+    failing to re-enable when the requirement is removed is disallowed.
+- Access data attaches to the property (to enable later prefill for 
+  returning customers), not to the booking. Persists across 
+  back-navigation (idempotent pattern).
+- Reuse established card/control styling and theme tokens.
+
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
 - Step 9 photo: whether a separate booking-time "current condition" photo 
   exists, distinct from the permanent per-lawn photo — undecided.
 - Stripe capture timing: payment (step 12) precedes mower acceptance 
   (step 13); authorise-then-capture vs capture-upfront undecided.
-- Per-lawn vs per-booking: whether access (8) is per booking or per lawn 
-  area is undecided. (Grass height (7) is decided: per lawn area.)
+- Access granularity (8): decided — per property, not per lawn or per 
+  booking. (Grass height (7) is also decided: per lawn area.)
 - Mower assignment & scheduling: not decided.
 
 ## 6. Conventions for Claude Code
