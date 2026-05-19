@@ -182,6 +182,104 @@ draft → confirmed → broadcast → accepted → in_progress → completed
 | `expired` | No acceptance within broadcast window |
 | `cancelled` | Customer cancels (pre-acceptance), or admin |
 
+### §3a — Cancellation model
+
+> Extension of §3 (job lifecycle). Covers all four cancellation
+> transitions. DECIDED items are stable in principle. Money mechanisms are
+> deferred to §5 (Stripe-gated). Named dependencies are recorded
+> explicitly, not hand-waved.
+
+**Case A — Mower accepts, then cancels before doing the work — DECIDED**
+
+Job side: the job auto-re-broadcasts to other eligible available 
+mowers. The customer IS notified that it happened (honest, low-drama: 
+"your mower became unavailable, we're finding another"). It does NOT 
+silently re-broadcast, and it does NOT drop all the way back to the 
+no-acceptance retry/wait flow.
+
+Mower side: the first such cancel is a tracked warning, no immediate 
+penalty. Consequences escalate on a pattern (one cancel = bad luck; 
+repeated = behaviour). A genuine one-off emergency self-absorbs because it 
+creates no pattern — no adjudication process required.
+
+Named dependency (open, not hand-waved): "tracked warning, escalate on 
+pattern" requires a **mower standing/reputation mechanism** that does not 
+yet exist — persisting per-mower cancel history, defining what constitutes 
+a "pattern" (count? rate? window?), and the escalation ladder (warning → 
+… → removal?). This is its own future design pass. Decided in principle 
+here; mechanism OPEN.
+
+**Case B — Customer cancels after a mower accepted, before work starts — DECIDED (principle)**
+
+Mirror of Case A's fairness structure.
+
+- There is a **free grace window** immediately after acceptance during 
+  which customer cancellation is fully consequence-free (mis-tap, instant 
+  change of mind, before the mower has materially acted).
+- After the grace window, the mower is **owed compensation in principle** 
+  for a good-faith commitment broken by the customer.
+
+Named dependencies (open, not hand-waved):
+- Compensation **mechanism** (how much, funded from where — customer 
+  cancellation fee? MOWR absorbs? from held funds? — and when) is a money 
+  flow GATED on the §5 Stripe-investigation payment model. Principle 
+  decided; mechanism DO-NOT-BUILD until §5 resolved.
+- Grace-window **duration** is an undefined parameter. Its end condition 
+  is also undefined: a fixed duration (e.g. 60s / 5 min) OR an event such 
+  as "mower marks en route" — but "en route" is a mower-side state that 
+  does not exist in the spec yet. OPEN; do not assume silently.
+
+**Case C — Customer cancels while job still broadcasting (no mower yet) — DECIDED**
+
+Fully clean: instant withdrawal, no friction, no penalty, **no tracking**. 
+No mower has committed, so there is no harm to anyone.
+
+Conscious trade recorded: there is deliberately **NO customer 
+standing/tracking mechanism** implied here. The minor abuse vector 
+(repeat book-then-bail pre-acceptance, e.g. price probing) is knowingly 
+accepted as low-risk in exchange for not building customer-side tracking 
+surface. This is a deliberate choice, not an oversight.
+
+Money tendril: if the resolved §5 model secures funds before broadcast, 
+even this clean cancel implies a funds-unwind. Behaviour decided; any 
+money unwind deferred to §5.
+
+**Case D — Admin force-cancel — BOUNDED, largely DEFERRED**
+
+Exists as a defined override, distinct from the party-driven cancels.
+
+- Can fire from ANY job state (broadcasting, accepted, in-progress).
+- Always carries a recorded reason/category: safety / fraud / error / 
+  legal-dispute.
+- Consequences inherit from the nearest normal cancel case, EXCEPT where 
+  the override reason changes who is at fault.
+
+OPEN — fault-asymmetry (deliberately undecided, recorded explicitly): 
+whether an admin force-cancel caused by one party's fault must avoid 
+penalising the other party (e.g. cancel for customer fraud must not strike 
+the mower's standing/payment) is DELIBERATELY left open, to be decided 
+together with the mower standing system. Risk acknowledged: an unpinned 
+principle can be built wrong in detail before it is revisited. Therefore: 
+the mower standing system MUST NOT be designed/built in a way that 
+forecloses adopting a fault-asymmetry rule later. Do-not-foreclose marker, 
+not silence.
+
+Deferred (with reasons): money unwind → §5 (Stripe-gated); 
+fault-asymmetry / standing exceptions → mower standing design pass; admin 
+tooling (who can trigger, audit log, notify behaviour) → Phase-2 backend. 
+Bounded here; not fully designed, by intent.
+
+**Summary of named open dependencies (so none are hand-waved)**
+
+1. Mower standing/reputation mechanism — OPEN, own design pass (Cases A, D).
+2. Cancellation compensation money mechanism — OPEN, gated on §5 (Case B).
+3. Grace-window duration + end-condition (possible "en route" mower 
+   state) — OPEN (Case B).
+4. Admin-cancel fault-asymmetry principle — DELIBERATELY OPEN, decide with 
+   standing system, do-not-foreclose (Case D).
+5. Deliberate NON-existence of a customer standing mechanism — recorded 
+   conscious trade (Case C).
+
 ### §4 — Concurrent acceptance (technical constraint)
 Multiple mowers may tap Accept simultaneously. The assignment MUST be 
 server-authoritative: a single atomic DB operation (e.g. conditional 
@@ -317,15 +415,18 @@ and it is explicitly scoped as its own decision.
   Undecided.
 - **Mower eligibility for broadcast**: radius only, or also specialisms / 
   equipment / ratings threshold? Undecided.
-- **Payment mechanism & clawback**: see §5 (capture mechanism, four 
-  candidates) and §8 (clawback collision). Neither resolved. MUST NOT 
-  build payout/clawback path until §8 clawback collision is resolved; 
-  MUST NOT build payment capture until §5 mechanism is chosen.
+- **Payment mechanism, clawback & cancellation money flows**: see §5 
+  (capture mechanism, four candidates), §8 (clawback collision), and §3a 
+  (Case B compensation, Case C/D unwind). None resolved. MUST NOT build 
+  payout/clawback/cancellation-compensation paths until §8 clawback 
+  collision and §5 mechanism are both resolved.
 - **Commission %**: undecided.
 - **Broadcast window**: how long before a job is re-broadcast or escalated 
   to admin? Undecided.
-- **Cancellation policy**: customer cancels after mower accepts — partial 
-  refund? Full refund? Mower compensation? Undecided.
+- **Cancellation model**: principles decided for all four cases — see §3a. 
+  Open items: mower standing mechanism (Cases A, D); grace-window duration 
+  + end-condition (Case B); compensation mechanism gated on §5 (Case B); 
+  admin fault-asymmetry rule, do-not-foreclose (Case D).
 
 ## Booking Flow (Customer)
 
