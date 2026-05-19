@@ -597,7 +597,11 @@ and it is explicitly scoped as its own decision.
 ### OPEN QUESTIONS — marketplace model (do NOT implement until decided)
 - **Pricing formula**: inputs to the formula (area? perimeter? grass 
   height? distance? time-of-day?) and the formula itself are undecided. 
-  Step 11 (pricing display) cannot be built until resolved.
+  Step 11 (pricing display) cannot be built until resolved. Constraint: 
+  Phase-1 perimeter is manually entered and low-reliability (customer 
+  intuition for linear edge metres is poor); any formula using perimeter 
+  must treat Phase-1 values cautiously. Map-derived perimeter (Method 2, 
+  deferred) would be reliable — formula design must account for both.
 - **Availability granularity**: time slots? Day-level on/off? Shift-based? 
   Undecided.
 - **Mower eligibility for broadcast**: radius only, or also specialisms / 
@@ -644,16 +648,21 @@ Returning customer (logged in): saved-properties list -> pick a property
 (or "Add a new property") -> lawn selection screen -> joins main flow at 
 grass height.
 Guest / "Add a new property": address entry -> confirm on map -> 
-lawn-creation loop (draw boundary -> name -> "another?") -> joins main 
-flow at grass height.
+lawn-creation loop (name + enter measurements -> "another?") -> joins 
+main flow at grass height. (Phase 1: manual measurement. Phase 2: 
+map-boundary draw replaces manual entry — see Lawn-area creation & 
+measurement subsection.)
 Both paths converge at grass height; from there the flow is linear.
 
 ### Full step list (real flow)
 1. (Returning only) Saved-properties list
 2. Address of property to be serviced
 3. Confirm address on a map
-4. Create lawn area by drawing a boundary on a map (captures area + perimeter)
-5. Name the lawn
+4. Create lawn area — name it + enter area (sqm) + perimeter manually 
+   (Phase 1: manual entry; map-boundary draw deferred to Phase 2 — see 
+   Lawn-area creation & measurement subsection)
+5. (Merged into step 4 in Phase 1; retained as a distinct step for Phase 2 
+   map-draw flow)
 6. "Another lawn area?" — if yes, loop to step 4
 7. Current grass height — low / medium / overgrown (with example images)
 8. Access to the lawn + optional free-text access notes
@@ -694,6 +703,70 @@ First screen on the returning-customer path. Precedes lawn selection.
   with the new lawn added, saved permanently to the property.
 - Persistent bottom bar: "X of Y selected"; Continue disabled at zero.
 - Selection state lives in BookingDraft (Riverpod), not local widget state.
+
+### Lawn-area creation & measurement (steps 4–6)
+
+> Booking-flow addition (per lawn area, sits with the lawn-area steps).
+> Resolves a gap: how a lawn's size/perimeter is captured. Phase 1 scope
+> is deliberately narrow; advanced methods recorded as future with their
+> payment ripple explicitly walled off from Phase 1.
+
+**Phase 1 — Manual entry (DECIDED, build now)**
+
+Per lawn area, the customer manually enters:
+
+- **Area** in sqm, with an optional, unobtrusive "help me estimate" 
+  hint (e.g. common-size reference / paces ready-reckoner). Optional — 
+  does not burden customers who already know. A sqm/sq ft unit toggle is 
+  acceptable.
+- **Perimeter**, manually entered.
+
+Single values, known at booking. No on-site revision in Phase 1. This 
+composes cleanly with the existing booking flow and the §5/§5a payment 
+model (amount known at booking — the premise that model depends on).
+
+Recorded limitation (not a blocker): manually-entered perimeter is 
+low-reliability data — customers have poor intuition for linear edge 
+metres. Capture it, but flag it: the eventual (OPEN) pricing formula must 
+treat a manual perimeter cautiously, and as less trustworthy than a 
+map-derived perimeter. Same shape as the grass-height-default constraint.
+
+**Recorded as FUTURE (do NOT build in Phase 1)**
+
+Method 2 — Map-boundary draw
+Customer draws a polygon; area + perimeter derived (accurate, unlike 
+manual). Known-cost: substantially built before in this project 
+(Mapbox / Turf.js lawn-area work). Deferred, not researched-anew. 
+Perimeter becomes meaningful here (derived, not guessed).
+
+Method 3 — Auto-estimate from property data
+System derives approximate green space from property data; mower 
+establishes the true boundary on site. Phase-2 research-grade 
+sub-project, NOT Phase-1 buildable. Hard problem: property/plot data 
+gives the plot, not the mowable lawn (excludes house, drive, patio, 
+beds). Prior exploration exists in project history (HM Land Registry 
+INSPIRE polygons, OSM Overpass) — reference, not a solved approach.
+
+Walled-off payment ripple (attached to Method 3, NOT Phase 1)
+Method 3 implies a TWO-STAGE boundary: approximate at booking → mower 
+sets true boundary on site → price may change post-booking. This 
+REOPENS the §5/§5a payment model (which depends on amount-known-at-
+booking). If/when Method 3 is built, the on-site price-revision 
+mechanism MUST be decided then — candidates already identified:
+(1) down-only / within pre-authorised buffer (keeps payment model 
+intact); (2) up-revision + re-charge + customer re-consent (reintroduces 
+re-auth fragility the project ruled out); (3) authorise-with-headroom-
+buffer (customer sees larger hold than quote — trust cost);
+(4) leave open. DO-NOT-BUILD Method 3 until this is chosen. Phase 1 is 
+unaffected because manual entry has no on-site revision.
+
+**Status**
+
+Phase 1 measurement = manual area + perimeter + optional estimate hint. 
+Decided, buildable, composes with payment model. Methods 2 and 3 and the 
+entire price-revision problem are deferred and explicitly cannot leak 
+into Phase 1. Perimeter reliability flagged as a constraint on the still-
+OPEN pricing formula.
 
 ### Grass-height screen (step 7 — convergence point)
 Reached by both entry paths: returning-customer (via property -> lawn 
@@ -777,6 +850,13 @@ on first invocation; runtime emulator testing of camera AND gallery is
 required, static analysis is not sufficient.
 
 ### OPEN QUESTIONS — do NOT implement until decided
+- Lawn measurement Methods 2 & 3 deferred (do NOT build in Phase 1): 
+  Method 2 (map-boundary draw, Mapbox/Turf.js) and Method 3 
+  (auto-estimate from property data) are explicitly not Phase 1. Method 3 
+  additionally REOPENS §5/§5a — on-site price-revision implies 
+  amount-not-known-at-booking. DO-NOT-BUILD Method 3 until its 
+  price-revision mechanism is chosen. See Lawn-area creation & 
+  measurement subsection for the four candidates.
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
 - Payment: payout model decided (see §8); standard-window decided, 
   extended-auth ruled out (see §5/§5a); access-provided branch OPEN 
@@ -793,6 +873,12 @@ required, static analysis is not sufficient.
   is built.
 
 ### Resolved decisions (booking flow)
+- Lawn measurement (Phase 1, steps 4–6): manual area (sqm) + perimeter + 
+  optional estimate hint. Single values known at booking; no on-site 
+  revision. Composes with §5/§5a payment model. Manual perimeter is 
+  low-reliability — pricing formula must treat it cautiously (same shape 
+  as grass-height-default constraint). Method 2 (map-boundary draw) and 
+  Method 3 (auto-estimate) deferred; see booking-flow OPEN QUESTIONS.
 - Access fork (step 8 / step 10): jobs are access-provided (customer 
   not required; tolerates longer acceptance window) or customer-present 
   (customer must be there; short-horizon). Step 10 "can they leave 
