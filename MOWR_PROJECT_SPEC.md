@@ -280,6 +280,87 @@ Bounded here; not fully designed, by intent.
 5. Deliberate NON-existence of a customer standing mechanism — recorded 
    conscious trade (Case C).
 
+### §3b — Broadcast window & daylight feasibility
+
+> Part of Marketplace model §3 (job lifecycle). Records one DECIDED
+> principle, two precisely-bounded OPEN items, and preserved hard facts
+> so nothing from the design discussion is lost. Honest state: most of
+> this is deliberately open — recorded as open, not vaguely deferred.
+
+**Broadcast window — PRINCIPLE decided, length OPEN**
+
+DECIDED (principle, stable):
+
+- A broadcast job stays open for an EXTENDED period — deliberately not a 
+  tight few-minute window. The model favours eventually filling the job 
+  over failing it fast.
+- The customer is told this UPFRONT, with expectation-setting language 
+  (e.g. "this may take a while — we appreciate your patience"). The wait 
+  is communicated, never a silent unexplained delay.
+
+OPEN (precisely bounded — do NOT assume values):
+
+- The actual broadcast-window LENGTH is undecided.
+- A noted CANDIDATE (not a decision): the window length may be bounded by 
+  the card-authorisation hold duration — rationale being "no point 
+  holding a job open longer than the customer's funds can be held." This 
+  is recorded as a candidate to revisit WITH the Stripe investigation 
+  (§5), explicitly NOT as a decided coupling. The project owner 
+  deliberately declined to lock this.
+- Therefore broadcast-window length is effectively gated on the Stripe 
+  investigation IF the auth-window coupling is later adopted; if it is 
+  not, length becomes an independent open decision. Either way: OPEN.
+
+**Daylight feasibility — OPEN (needs design), with preserved hard facts**
+
+This is NOT yet designed and is recorded as open. Two concrete inputs are 
+preserved so they are not lost when it IS designed:
+
+- HARD FACT — earliest start: a mower cannot start before **08:00** due 
+  to noise regulations. This is a regulatory constraint, not a tunable. 
+  Any daylight/scheduling design MUST honour an 08:00 earliest start.
+- Intended late bound: completion bounded by **sunset** (sunrise/sunset 
+  are computable from date + location — astronomy, not data that requires 
+  launch). Recorded as the intended approach, design pending.
+
+OPEN / needs design (do NOT implement):
+
+- The full feasibility rule: "job must fit within remaining daylight 
+  given its estimated duration, between 08:00 and sunset."
+- Job-duration estimate (e.g. "medium-height 100 sqm ≈ 20 min") is a 
+  HEURISTIC, not a validated formula. Recorded as an intended approach to 
+  be CALIBRATED against real job data — not a solved constant. Real mow 
+  times vary by mower, equipment, terrain, obstacles.
+- Dependency link: the job-duration estimate likely also feeds the pricing 
+  formula (price partly a function of estimated time). The pricing formula 
+  is itself OPEN. These two are linked and must be resolved consistently — 
+  do not solve job-duration in isolation in a way that contradicts the 
+  eventual pricing model.
+
+**Distinctions deliberately preserved (so the spec does not conflate them)**
+
+Three different things, kept separate by intent:
+
+1. Broadcast-window length = how long we wait for a mower to ACCEPT. 
+   About mower response latency. (Principle decided, length open.)
+2. Daylight feasibility = whether a job CAN be done given 08:00 / sunset 
+   / estimated duration. About physical/regulatory possibility. (Open, 
+   needs design.)
+3. Job-duration estimate = how long the mowing WORK takes. A calibratable 
+   heuristic, linked to pricing. (Open.)
+
+Conflating these (e.g. using job size to set the broadcast window) is a 
+known error and is explicitly disallowed.
+
+**Status**
+
+§3's job state machine is now specified IN PRINCIPLE. Remaining open 
+items here are deliberately open (project owner declined to force 
+decisions not yet ready), not vaguely deferred. Multiple items across §3 
+and §5 now terminate at the same gating dependency: the Stripe 
+investigation (auth-window / Connect mechanics). That investigation is 
+the highest-leverage unblock for the payment-and-fulfilment spine.
+
 ### §4 — Concurrent acceptance (technical constraint)
 Multiple mowers may tap Accept simultaneously. The assignment MUST be 
 server-authoritative: a single atomic DB operation (e.g. conditional 
@@ -421,8 +502,9 @@ and it is explicitly scoped as its own decision.
   payout/clawback/cancellation-compensation paths until §8 clawback 
   collision and §5 mechanism are both resolved.
 - **Commission %**: undecided.
-- **Broadcast window**: how long before a job is re-broadcast or escalated 
-  to admin? Undecided.
+- **Broadcast window**: principle decided (extended window, customer 
+  informed upfront) — see §3b. Length OPEN; possibly gated on §5 
+  Stripe investigation (auth-hold coupling candidate, not decided).
 - **Cancellation model**: principles decided for all four cases — see §3a. 
   Open items: mower standing mechanism (Cases A, D); grace-window duration 
   + end-condition (Case B); compensation mechanism gated on §5 (Case B); 
