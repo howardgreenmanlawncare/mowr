@@ -291,25 +291,27 @@ Bounded here; not fully designed, by intent.
 
 DECIDED (principle, stable):
 
-- A broadcast job stays open for an EXTENDED period — deliberately not a 
-  tight few-minute window. The model favours eventually filling the job 
-  over failing it fast.
+- A broadcast job stays open for an EXTENDED period for **access-provided** 
+  jobs — deliberately not a tight few-minute window. The model favours 
+  eventually filling the job over failing it fast.
+- **Refined by §5a**: this "extended window" principle applies to 
+  access-provided jobs only. Customer-present jobs require a tighter, 
+  more predictable commitment; their window behaviour is OPEN. See §5a 
+  (Access fork & payment window) for the full branch definition.
 - The customer is told this UPFRONT, with expectation-setting language 
   (e.g. "this may take a while — we appreciate your patience"). The wait 
   is communicated, never a silent unexplained delay.
 
 OPEN (precisely bounded — do NOT assume values):
 
-- The actual broadcast-window LENGTH is undecided.
-- A noted CANDIDATE (not a decision): the window length may be bounded by 
-  the card-authorisation hold duration — rationale being "no point 
-  holding a job open longer than the customer's funds can be held." This 
-  is recorded as a candidate to revisit WITH the Stripe investigation 
-  (§5), explicitly NOT as a decided coupling. The project owner 
-  deliberately declined to lock this.
-- Therefore broadcast-window length is effectively gated on the Stripe 
-  investigation IF the auth-window coupling is later adopted; if it is 
-  not, length becomes an independent open decision. Either way: OPEN.
+- The actual broadcast-window LENGTH for access-provided jobs is undecided.
+- The broadcast-window behaviour for customer-present jobs is separately 
+  OPEN — see §5a.
+- The auth-window coupling candidate (broadcast window bounded by 
+  card-auth hold duration) has been SUPERSEDED: extended-auth is ruled 
+  out (§5a). Window length for the access-provided branch is now an 
+  independent open decision, constrained to the standard auth window 
+  (~7 days). Customer-present window is a separate open.
 
 **Daylight feasibility — OPEN (needs design), with preserved hard facts**
 
@@ -355,11 +357,11 @@ known error and is explicitly disallowed.
 **Status**
 
 §3's job state machine is now specified IN PRINCIPLE. Remaining open 
-items here are deliberately open (project owner declined to force 
-decisions not yet ready), not vaguely deferred. Multiple items across §3 
-and §5 now terminate at the same gating dependency: the Stripe 
-investigation (auth-window / Connect mechanics). That investigation is 
-the highest-leverage unblock for the payment-and-fulfilment spine.
+items here are deliberately open, not vaguely deferred. The Stripe 
+investigation is complete (§5a): extended-auth is ruled out, standard 
+window decided, access-provided branch open. Broadcast-window length 
+for the access-provided branch is an independent open; customer-present 
+window is a separate open.
 
 ### §4 — Concurrent acceptance (technical constraint)
 Multiple mowers may tap Accept simultaneously. The assignment MUST be 
@@ -369,7 +371,7 @@ assigned. First write wins; all others receive a rejection response and
 the job disappears from their queue. Client-side "first tap" is 
 insufficient — there will be races.
 
-### §5 — Stripe Connect (decided principles; mechanism open)
+### §5 — Stripe Connect (decided principles; mechanism partially resolved)
 
 **Decided**
 - Payments go through Stripe Connect so platform commission is split 
@@ -378,23 +380,125 @@ insufficient — there will be races.
 - The platform takes a commission percentage (exact % undecided — see 
   OPEN QUESTIONS).
 - No manual payroll; Stripe handles mower payouts.
+- Payment operates within the **standard auth window** (~7 days; ~5 for 
+  Visa MIT). Extended authorizations deliberately ruled out — see §5a.
 
-**OPEN — payment mechanism (do NOT implement until resolved)**
-The auth-hold problem: payment is taken at booking (step 12), but the 
-mower hasn't accepted yet (step 13). Four candidate directions:
+**RETIRED — extended-auth as a mechanism candidate**
+The four-candidate list previously held here is superseded. Extended-auth 
+(~30 days via MCC eligibility / IC+ pricing) is deliberately abandoned. 
+Authorise-then-capture within the standard window is the decided approach 
+for customer-present jobs. See §5a for the full Stripe research findings 
+and the access-provided branch open item.
 
-1. **Capture-upfront** — charge immediately at booking; refund if no 
-   mower accepts. Simple but refunds have latency / card issuer friction.
-2. **Authorise-then-capture** — auth hold at booking; capture when mower 
-   accepts. Auth holds expire (~7 days); risky if acceptance is slow.
-3. **Charge + escrow** — charge immediately; hold funds in Stripe balance 
-   until acceptance/completion. Avoids refunds but adds Stripe Treasury 
-   complexity.
-4. **Charge at acceptance** — save card at booking; charge only when a 
-   mower accepts. Customer could dispute "silent" charge after delay.
+**OPEN — access-provided branch only (do NOT implement until resolved)**
+The access-provided/long-window branch payment resolution is open — three 
+candidate options (product constraint / capture-early-then-refund / not 
+offered at launch). See §5a. MUST be resolved before step 12 and the 
+Connect integration are built for that branch.
 
-This is a load-bearing architectural decision. MUST be resolved before 
-step 12 and the Connect integration are built.
+**Hard invariant (non-conditional)**
+Capture MUST occur before the auth `capture_before` expiry. Stripe's 
+auto-capture ~6h-before-expiry backstop MUST be used. A defined fallback 
+for jobs that cannot complete within the window is a requirement — its 
+specifics are OPEN (interacts with no-acceptance / cancellation models).
+
+### §5a — Access fork & payment window
+
+> Consolidates decisions relating to the booking flow (step 8 access,
+> step 10 timing), §3b (broadcast window), and §5 (payment mechanism).
+> DECIDED items are stable. OPEN items carry do-not-build markers.
+> Records an honest consequence, not just a decision.
+
+**Access fork — DECIDED (keystone)**
+
+A MOWR job is one of two kinds, indicated by the customer per booking:
+
+- **Access-provided**: gate left open / open frontage. The customer need 
+  NOT be present. Tolerates a longer fill/acceptance window.
+- **Customer-present**: the customer must be there to allow access. 
+  Inherently short-horizon — the customer will not hold themselves 
+  available across a multi-day acceptance window.
+
+Consistent with the existing (built, verified) booking flow: step 8 
+(access) and step 10 ("can they leave access if not home") already 
+implied this fork. This decision makes it explicit; it does not 
+contradict Phase 1 work.
+
+**Branch consequences — job-type-dependent (record as branched, not uniform)**
+
+The fork splits three things that were previously treated as uniform:
+
+1. Scheduling / acceptance window branches by type. The extended-period 
+   broadcast window applies to **access-provided** jobs. 
+   **Customer-present** jobs need a tighter, more predictable commitment 
+   — they cannot tolerate a multi-day acceptance window. The §3b 
+   "extended window" principle is hereby refined to "extended for 
+   access-provided; tighter for customer-present." Customer-present 
+   window behaviour is OPEN.
+2. Payment horizon branches by type (see next section).
+3. Arrival-window expectation branches by type: customer-present jobs 
+   likely require an arrival-window commitment; access-provided do not. 
+   Arrival windows remain a Phase-2 fulfilment-dependent capability 
+   (depends on mower side + routing, both unbuilt). Recorded as desirable 
+   future capability, NOT designed now.
+
+**Stripe auth research findings (recorded)**
+
+- Standard online card authorization hold: ~7 days typical; Visa 
+  merchant-initiated is ~5 days. Per-transaction, confirmed via Stripe's 
+  `capture_before` field.
+- Extended authorizations exist (up to ~30 days) BUT depend on merchant 
+  category code eligibility and typically IC+ pricing — an account 
+  qualification path.
+- If an auth expires before capture: funds released, PaymentIntent 
+  cancelled, customer never charged. No protection for a job "in motion."
+- No "refresh the clock" on an existing auth: a new PaymentIntent / 
+  fresh authorization is required, meaning re-contacting the customer 
+  with decline risk.
+- Backstop available: Stripe can auto-capture ~6h before expiry.
+
+**Payment mechanism — DECIDED to keep simple (extended-auth ruled OUT)**
+
+MOWR will NOT depend on extended authorizations. The MCC-eligibility / 
+IC+-pricing qualification path is deliberately avoided as unwanted 
+complexity. Payment operates within the **standard auth window** (~7 
+days; ~5 for Visa MIT).
+
+Honest consequence (recorded, not hidden): simplicity on the Stripe side 
+relocates complexity into the model. The standard window comfortably 
+covers **customer-present** jobs (short-horizon by nature — 
+authorise-at-booking, capture near completion fits in ~7 days). It does 
+NOT automatically cover **access-provided, days-out** jobs.
+
+**OPEN — access-provided branch only (do NOT build until decided)**
+
+The access-provided/long-window branch must be resolved by one of:
+- (a) a product constraint — such jobs must be filled & completed within 
+  the standard window or the booking lapses;
+- (b) capture-early-then-refund-on-failure for that branch (reintroduces 
+  refund operations — previously steered away from);
+- (c) that branch not offered at launch.
+
+This is now contained to the access-provided branch, not the whole 
+product — the fork narrowed it. DO-NOT-BUILD until one option chosen.
+
+**Hard architectural invariant — NON-conditional**
+
+Regardless of branch or mechanism: capture MUST occur before the auth 
+`capture_before` expiry. Use Stripe's auto-capture ~6h-before-expiry 
+backstop. A defined fallback MUST exist for any job that cannot complete 
+within the window (its specifics are OPEN and interact with the 
+no-acceptance/cancellation models — but that the fallback must exist and 
+be defined is a requirement now, not optional).
+
+**Status**
+
+Remaining payment unknowns are factual, narrowed to one branch:
+- Standard-window adequacy is confirmed for customer-present jobs.
+- Only the access-provided/long-window branch needs a chosen resolution 
+  — a design decision, not a Stripe-eligibility one.
+- Extended-auth path deliberately abandoned; no Stripe MCC/IC+ 
+  negotiation required.
 
 ### §6 — Mower side (largely unspecified)
 The mower app surface is Phase 4. What is decided:
@@ -414,8 +518,10 @@ schema + auth. Nothing in this section should be built before its phase.
 
 OPEN items in this section MUST NOT be implemented until resolved — 
 several are load-bearing, not edge cases. In particular: the payment 
-mechanism (§5) and the Connect integration MUST NOT be built until the 
-auth-hold trade-off is resolved.
+mechanism (§5/§5a) and the Connect integration MUST NOT be built until 
+the access-provided branch resolution and clawback collision (§8) are 
+both resolved. Customer-present jobs are payment-mechanically unblocked 
+in principle (standard-window decided); access-provided branch is not.
 
 ### §8 — Completion & payment model
 
@@ -496,15 +602,18 @@ and it is explicitly scoped as its own decision.
   Undecided.
 - **Mower eligibility for broadcast**: radius only, or also specialisms / 
   equipment / ratings threshold? Undecided.
-- **Payment mechanism, clawback & cancellation money flows**: see §5 
-  (capture mechanism, four candidates), §8 (clawback collision), and §3a 
-  (Case B compensation, Case C/D unwind). None resolved. MUST NOT build 
+- **Payment mechanism, clawback & cancellation money flows**: standard-window 
+  decided, extended-auth abandoned (see §5/§5a). Customer-present branch 
+  unblocked in principle. Access-provided branch OPEN — three candidates, 
+  DO-NOT-BUILD (see §5a). Clawback collision OPEN (see §8). Cancellation 
+  money flows OPEN, gated on §5a resolution (see §3a). MUST NOT build 
   payout/clawback/cancellation-compensation paths until §8 clawback 
-  collision and §5 mechanism are both resolved.
+  collision and §5a access-provided branch are both resolved.
 - **Commission %**: undecided.
-- **Broadcast window**: principle decided (extended window, customer 
-  informed upfront) — see §3b. Length OPEN; possibly gated on §5 
-  Stripe investigation (auth-hold coupling candidate, not decided).
+- **Broadcast window**: principle decided for access-provided jobs 
+  (extended window, customer informed upfront) — see §3b, refined by 
+  §5a. Access-provided window length OPEN (independent, not auth-gated — 
+  extended-auth ruled out). Customer-present window separately OPEN.
 - **Cancellation model**: principles decided for all four cases — see §3a. 
   Open items: mower standing mechanism (Cases A, D); grace-window duration 
   + end-condition (Case B); compensation mechanism gated on §5 (Case B); 
@@ -669,9 +778,11 @@ required, static analysis is not sufficient.
 
 ### OPEN QUESTIONS — do NOT implement until decided
 - Pricing model (step 11): formula undecided. Step 11 cannot be built yet.
-- Payment: payout model decided (see Marketplace model §8); payment 
-  mechanism open (see §5); clawback collision open (see §8). Steps 12/13 
-  MUST NOT be built until §5 and §8 opens are resolved.
+- Payment: payout model decided (see §8); standard-window decided, 
+  extended-auth ruled out (see §5/§5a); access-provided branch OPEN 
+  (see §5a); clawback collision OPEN (see §8). Steps 12/13 MUST NOT be 
+  built until §5a access-provided branch and §8 clawback collision are 
+  both resolved.
 - Mower assignment: decided — see Marketplace model (broadcast, first-to-accept). Sub-questions (availability, eligibility, broadcast window) tracked there.
 - Orphaned condition photos at confirmation: because photos are retained 
   when a lawn is deselected, the booking may carry condition photos for 
@@ -682,6 +793,11 @@ required, static analysis is not sufficient.
   is built.
 
 ### Resolved decisions (booking flow)
+- Access fork (step 8 / step 10): jobs are access-provided (customer 
+  not required; tolerates longer acceptance window) or customer-present 
+  (customer must be there; short-horizon). Step 10 "can they leave 
+  access if not home" captures this. Decision made explicit in 
+  Marketplace model §5a; consistent with built Phase 1 flow.
 - Step 9 condition photos: optional, multiple current-condition photos per 
   selected lawn area, on top of (not replacing) the permanent per-lawn 
   reference photo. Stored in BookingDraft keyed by lawn id.
