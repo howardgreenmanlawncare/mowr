@@ -17,6 +17,8 @@ import '../../features/booking/presentation/steps/confirmation_step.dart';
 import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/onboarding/presentation/email_capture_screen.dart';
 import '../../features/payment/presentation/payment_methods_screen.dart';
+import '../../features/mower/presentation/mower_auth_screen.dart';
+import '../../features/mower/presentation/mower_home_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -96,6 +98,16 @@ final router = GoRouter(
     GoRoute(
       path: PaymentMethodsScreen.routePath,
       builder: (context, state) => const PaymentMethodsScreen(),
+    ),
+
+    // Mower side
+    GoRoute(
+      path: MowerAuthScreen.routePath,
+      builder: (context, state) => const MowerAuthScreen(),
+    ),
+    GoRoute(
+      path: MowerHomeScreen.routePath,
+      builder: (context, state) => const MowerHomeScreen(),
     ),
   ],
 );

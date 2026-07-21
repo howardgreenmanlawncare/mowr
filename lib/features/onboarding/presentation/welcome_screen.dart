@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../booking/presentation/steps/saved_properties_step.dart';
+import '../../mower/presentation/mower_auth_screen.dart';
 import 'email_capture_screen.dart';
 
 /// The front door. Sells the outcome and drives straight to the "see your
@@ -70,6 +71,10 @@ class WelcomeScreen extends StatelessWidget {
                 onPressed: () =>
                     context.push(SavedPropertiesStepScreen.routePath),
                 child: const Text("I've booked before"),
+              ),
+              TextButton(
+                onPressed: () => context.push(MowerAuthScreen.routePath),
+                child: const Text('Are you a mower? Sign in'),
               ),
             ],
           ),
