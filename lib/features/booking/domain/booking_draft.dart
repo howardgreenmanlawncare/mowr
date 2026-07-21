@@ -42,6 +42,9 @@ class BookingDraft {
     this.asap = true,
     this.timeWindow = TimeWindow.any,
     this.accessProvided,
+    this.customerName,
+    this.customerEmail,
+    this.customerMobile,
   });
 
   final String? postcode;
@@ -103,6 +106,12 @@ class BookingDraft {
   /// let the mower in. Null until answered on the schedule step.
   final bool? accessProvided;
 
+  /// Contact details. Email is captured early (lead capture); name + mobile are
+  /// filled in at account creation / payment.
+  final String? customerName;
+  final String? customerEmail;
+  final String? customerMobile;
+
   BookingDraft copyWith({
     String? postcode,
     String? propertyId,
@@ -124,6 +133,9 @@ class BookingDraft {
     bool? asap,
     TimeWindow? timeWindow,
     bool? accessProvided,
+    String? customerName,
+    String? customerEmail,
+    String? customerMobile,
   }) {
     return BookingDraft(
       postcode: postcode ?? this.postcode,
@@ -146,6 +158,9 @@ class BookingDraft {
       asap: asap ?? this.asap,
       timeWindow: timeWindow ?? this.timeWindow,
       accessProvided: accessProvided ?? this.accessProvided,
+      customerName: customerName ?? this.customerName,
+      customerEmail: customerEmail ?? this.customerEmail,
+      customerMobile: customerMobile ?? this.customerMobile,
     );
   }
 }

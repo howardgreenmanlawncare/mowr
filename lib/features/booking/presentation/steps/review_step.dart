@@ -64,29 +64,17 @@ class ReviewStepScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 20),
-          _Section(
+          _PriceSection(
             title: 'Lawn mowing',
-            turnUpLabel: 'Call-out',
-            turnUp: quote.money(quote.mowTurnUp),
+            price: quote.money(quote.mowingSubtotal),
             lines: quote.mowLines,
-            subtotal: quote.money(quote.mowingSubtotal),
-            minimumNote: quote.mowMinimumApplied
-                ? 'Minimum charge of ${quote.money(quote.mowMinimum)} applied'
-                : null,
-            money: quote.money,
           ),
           if (quote.hasEdging) ...[
-            const SizedBox(height: 14),
-            _Section(
+            const SizedBox(height: 12),
+            _PriceSection(
               title: 'Lawn edging',
-              turnUpLabel: 'Call-out',
-              turnUp: quote.money(quote.edgeTurnUp),
+              price: quote.money(quote.edgingSubtotal),
               lines: quote.edgeLines,
-              subtotal: quote.money(quote.edgingSubtotal),
-              minimumNote: quote.edgeMinimumApplied
-                  ? 'Minimum charge of ${quote.money(quote.edgeMinimum)} applied'
-                  : null,
-              money: quote.money,
             ),
           ],
           const SizedBox(height: 16),
@@ -121,24 +109,16 @@ class ReviewStepScreen extends ConsumerWidget {
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section({
+class _PriceSection extends StatelessWidget {
+  const _PriceSection({
     required this.title,
-    required this.turnUpLabel,
-    required this.turnUp,
+    required this.price,
     required this.lines,
-    required this.subtotal,
-    required this.minimumNote,
-    required this.money,
   });
 
   final String title;
-  final String turnUpLabel;
-  final String turnUp;
+  final String price;
   final List<PriceLine> lines;
-  final String subtotal;
-  final String? minimumNote;
-  final String Function(double) money;
 
   @override
   Widget build(BuildContext context) {
@@ -153,64 +133,39 @@ class _Section extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-            ),
-            const SizedBox(height: 10),
-            _lineRow(turnUpLabel, null, turnUp),
-            ...lines.map(
-              (line) => _lineRow(line.name, line.detail, money(line.amount)),
-            ),
-            if (minimumNote != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                minimumNote!,
-                style: TextStyle(
-                    color: Colors.orange.shade800,
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic),
-              ),
-            ],
-            const Divider(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Subtotal',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-                Text(subtotal,
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(price,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 16)),
               ],
+            ),
+            const SizedBox(height: 8),
+            ...lines.map(
+              (line) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_rounded,
+                        size: 16, color: Colors.grey.shade500),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${line.name}  ·  ${line.detail}',
+                        style: TextStyle(
+                            color: Colors.grey.shade700, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _lineRow(String name, String? detail, String amount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                if (detail != null) ...[
-                  const SizedBox(height: 2),
-                  Text(detail,
-                      style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ],
       ),
     );
   }

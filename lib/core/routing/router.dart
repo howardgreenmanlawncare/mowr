@@ -13,13 +13,19 @@ import '../../features/booking/presentation/steps/service_step.dart';
 import '../../features/booking/presentation/steps/schedule_step.dart';
 import '../../features/booking/presentation/steps/review_step.dart';
 import '../../features/booking/presentation/steps/confirmation_step.dart';
+import '../../features/onboarding/presentation/welcome_screen.dart';
+import '../../features/onboarding/presentation/email_capture_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const _HomeScreen(),
+      builder: (context, state) => const WelcomeScreen(),
+    ),
+    GoRoute(
+      path: EmailCaptureScreen.routePath,
+      builder: (context, state) => const EmailCaptureScreen(),
     ),
 
     // Booking flow — returning-customer path
@@ -80,58 +86,4 @@ final router = GoRouter(
   ],
 );
 
-class _HomeScreen extends StatelessWidget {
-  const _HomeScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 36,
-                backgroundColor: cs.primaryContainer,
-                child: Icon(Icons.grass_rounded, size: 40, color: cs.onPrimaryContainer),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'MOWR',
-                style: TextStyle(
-                  color: cs.primary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 32,
-                  letterSpacing: 4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'On-demand lawn mowing',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(height: 48),
-              FilledButton.icon(
-                onPressed: () => context.push(PostcodeStepScreen.routePath),
-                icon: const Icon(Icons.grass_rounded),
-                label: const Text('Book a mow'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () => context.push(SavedPropertiesStepScreen.routePath),
-                icon: const Icon(Icons.home_rounded),
-                label: const Text('My properties'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 

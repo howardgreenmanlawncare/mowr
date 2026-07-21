@@ -17,6 +17,21 @@ class MowrApp extends StatelessWidget {
       theme: AppTheme.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        // Bump all text ~10% for readability, while still respecting the
+        // device's own accessibility text-size setting. Clamped so very large
+        // system settings don't break layouts.
+        final mq = MediaQuery.of(context);
+        final systemFactor = mq.textScaler.scale(1.0);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: TextScaler.linear(
+              (systemFactor * 1.1).clamp(1.0, 1.5),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

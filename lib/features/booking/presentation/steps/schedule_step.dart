@@ -69,21 +69,23 @@ class ScheduleStepScreen extends ConsumerWidget {
             selected: !draft.asap,
             onTap: () => _pickDate(context, ref),
           ),
-          const SizedBox(height: 24),
-          Text('Preferred time', style: theme.textTheme.labelLarge),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final w in TimeWindow.values)
-                ChoiceChip(
-                  label: Text(_windowLabel(w)),
-                  selected: draft.timeWindow == w,
-                  onSelected: (_) => notifier.setTimeWindow(w),
-                ),
-            ],
-          ),
+          if (!draft.asap) ...[
+            const SizedBox(height: 24),
+            Text('Preferred time', style: theme.textTheme.labelLarge),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final w in TimeWindow.values)
+                  ChoiceChip(
+                    label: Text(_windowLabel(w)),
+                    selected: draft.timeWindow == w,
+                    onSelected: (_) => notifier.setTimeWindow(w),
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 24),
           Text(
             'Will you be home to let the mower in?',

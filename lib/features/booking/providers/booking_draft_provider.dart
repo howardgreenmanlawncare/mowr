@@ -203,6 +203,14 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
     );
   }
 
+  void setContact({String? name, String? email, String? mobile}) {
+    state = state.copyWith(
+      customerName: name,
+      customerEmail: email,
+      customerMobile: mobile,
+    );
+  }
+
   void setAsap() => state = state.copyWith(asap: true);
 
   void setScheduledDate(DateTime date) =>
