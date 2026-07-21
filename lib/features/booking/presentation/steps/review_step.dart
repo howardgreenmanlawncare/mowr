@@ -7,7 +7,7 @@ import '../../mock/mock_properties.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../../providers/pricing_provider.dart';
 import '../booking_shell.dart';
-import 'confirmation_step.dart';
+import 'account_step.dart';
 
 class ReviewStepScreen extends ConsumerWidget {
   const ReviewStepScreen({super.key});
@@ -37,7 +37,7 @@ class ReviewStepScreen extends ConsumerWidget {
       stepIndex: kStepReview,
       stepLabel: 'Review & price',
       continueLabel: 'Request booking',
-      onContinue: () => context.push(ConfirmationStepScreen.routePath),
+      onContinue: () => context.push(AccountStepScreen.routePath),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

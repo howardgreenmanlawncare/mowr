@@ -136,8 +136,7 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
   /// Creates a default [PropertyAccess] entry for [state.propertyId] only if
   /// none exists — preserves any values already set on back-navigation.
   void initPropertyAccess() {
-    final propertyId = state.propertyId;
-    if (propertyId == null) return;
+    final propertyId = state.propertyId ?? kDraftPropertyKey;
     if (state.propertyAccessMap.containsKey(propertyId)) return;
     final updated = Map<String, PropertyAccess>.from(state.propertyAccessMap);
     updated[propertyId] = const PropertyAccess();
@@ -145,8 +144,7 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
   }
 
   void toggleAccessPreset(AccessPreset preset) {
-    final propertyId = state.propertyId;
-    if (propertyId == null) return;
+    final propertyId = state.propertyId ?? kDraftPropertyKey;
     final current =
         state.propertyAccessMap[propertyId] ?? const PropertyAccess();
     final presets = Set<AccessPreset>.from(current.presets);
@@ -162,8 +160,7 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
   }
 
   void updateAccessNotes(String notes) {
-    final propertyId = state.propertyId;
-    if (propertyId == null) return;
+    final propertyId = state.propertyId ?? kDraftPropertyKey;
     final current =
         state.propertyAccessMap[propertyId] ?? const PropertyAccess();
     final updated = Map<String, PropertyAccess>.from(state.propertyAccessMap);

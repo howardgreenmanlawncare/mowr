@@ -44,6 +44,8 @@ dependencies:
   geolocator: ^13.0.0
   # Postcode -> address lookup (postcodes.io + getAddress.io).
   http: ^1.2.0
+  # Payments — Stripe PaymentSheet (add/save card).
+  flutter_stripe: ^11.1.0
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,11 @@ import 'property_access_model.dart';
 // LawnArea (the domain entity) lives in lawn_area_model.dart.
 // The draft holds only selected lawn IDs, not embedded lawn objects.
 
+/// Key for the guest-path property's access data before a real property id
+/// exists (a guest hasn't saved a property yet, so [BookingDraft.propertyId]
+/// is null). Both the notifier and the access screen fall back to this.
+const String kDraftPropertyKey = '__draft__';
+
 enum GrassLength { low, medium, high }
 
 enum AccessType { straightforward, restricted, noSideAccess }

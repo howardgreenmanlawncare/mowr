@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../domain/booking_draft.dart';
 import '../../domain/property_access_model.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
@@ -25,7 +26,8 @@ class _LawnAccessStepScreenState extends ConsumerState<LawnAccessStepScreen> {
     // Seed controller from any persisted notes (empty string on first visit).
     final draft = ref.read(bookingDraftProvider);
     final initialNotes =
-        draft.propertyAccessMap[draft.propertyId]?.notes ?? '';
+        draft.propertyAccessMap[draft.propertyId ?? kDraftPropertyKey]?.notes ??
+            '';
     _notesController = TextEditingController(text: initialNotes);
 
     // Push every keystroke into the provider so canContinue stays reactive.
@@ -51,7 +53,8 @@ class _LawnAccessStepScreenState extends ConsumerState<LawnAccessStepScreen> {
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
     final access =
-        draft.propertyAccessMap[draft.propertyId] ?? const PropertyAccess();
+        draft.propertyAccessMap[draft.propertyId ?? kDraftPropertyKey] ??
+            const PropertyAccess();
 
     final requiresNotes = access.notesRequired;
     final canContinue = !requiresNotes || access.notes.isNotEmpty;
@@ -155,12 +158,16 @@ class _PresetCard extends StatelessWidget {
               label: Text(preset.label),
               selected: selected,
               onSelected: (_) => onToggle(preset),
-              selectedColor: cs.primaryContainer,
-              checkmarkColor: cs.onPrimaryContainer,
+              showCheckmark: true,
+              backgroundColor: Colors.white,
+              selectedColor: cs.primary,
+              checkmarkColor: Colors.white,
+              side: BorderSide(
+                color: selected ? cs.primary : Colors.grey.shade300,
+              ),
               labelStyle: TextStyle(
-                color: selected ? cs.onPrimaryContainer : null,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? Colors.white : Colors.black87,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),

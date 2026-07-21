@@ -1,5 +1,7 @@
 package uk.co.mowr.mowr
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// flutter_stripe requires FlutterFragmentActivity (not FlutterActivity) so the
+// Stripe payment sheet can present its own fragments.
+class MainActivity : FlutterFragmentActivity()

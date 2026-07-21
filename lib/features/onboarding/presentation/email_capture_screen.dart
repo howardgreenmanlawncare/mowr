@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../booking/presentation/steps/postcode_step.dart';
 import '../../booking/providers/booking_draft_provider.dart';
+import '../data/lead_repository.dart';
 
 /// Early, low-friction lead capture: grab the email (framed as "save your
 /// quote") before the customer builds their booking, so they can be reminded
@@ -47,9 +50,10 @@ class _EmailCaptureScreenState extends ConsumerState<EmailCaptureScreen> {
       setState(() => _showError = true);
       return;
     }
-    ref
-        .read(bookingDraftProvider.notifier)
-        .setContact(email: _controller.text.trim());
+    final email = _controller.text.trim();
+    ref.read(bookingDraftProvider.notifier).setContact(email: email);
+    // Fire-and-forget lead capture — best-effort, never blocks navigation.
+    unawaited(ref.read(leadRepositoryProvider).capture(email));
     context.push(PostcodeStepScreen.routePath);
   }
 
