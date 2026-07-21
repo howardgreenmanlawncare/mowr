@@ -1,3 +1,4 @@
+import '../domain/booking_draft.dart';
 import '../domain/lawn_area_model.dart';
 import '../domain/property_model.dart';
 
@@ -47,4 +48,23 @@ Property mockPropertyById(String? propertyId) {
     (p) => p.id == propertyId,
     orElse: () => kMockProperties.first,
   );
+}
+
+/// The single source of truth for "which lawns belong to this booking",
+/// spanning BOTH entry paths (see CLAUDE.md "Screen wiring"):
+///
+/// - Returning-customer path: a [propertyId] is set, so the property's saved
+///   lawns are returned (plus any added in-flow on the guest sub-flow).
+/// - Guest path: no [propertyId]; the lawns the customer created in the flow
+///   ([BookingDraft.draftLawns]) are the booking's lawns.
+///
+/// Downstream screens (lawn selection, grass height, condition photos) MUST
+/// resolve lawns through this function rather than calling [mockPropertyById]
+/// directly, so the guest path and returning path share one contract.
+/// In Phase 2 this becomes a per-property repository query.
+List<LawnArea> resolveBookingLawns(BookingDraft draft) {
+  final base = draft.propertyId != null
+      ? mockPropertyById(draft.propertyId).lawnAreas
+      : const <LawnArea>[];
+  return [...base, ...draft.draftLawns];
 }

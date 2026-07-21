@@ -55,8 +55,8 @@ class ConditionPhotosStepScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final draft = ref.watch(bookingDraftProvider);
-    final property = mockPropertyById(draft.propertyId);
-    final selectedLawns = property.lawnAreas
+    // Shared seam: works for both the returning-property and guest paths.
+    final selectedLawns = resolveBookingLawns(draft)
         .where((l) => draft.selectedLawnIds.contains(l.id))
         .toList();
 

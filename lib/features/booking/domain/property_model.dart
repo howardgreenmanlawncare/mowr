@@ -10,6 +10,8 @@ class Property {
     required this.addressLine1,
     required this.addressCity,
     required this.postcode,
+    this.lat,
+    this.lng,
     this.lawnAreas = const [],
   });
 
@@ -17,6 +19,11 @@ class Property {
   final String addressLine1;
   final String addressCity;
   final String postcode;
+
+  /// Precise property location, captured on the confirm-location map step.
+  final double? lat;
+  final double? lng;
+
   final List<LawnArea> lawnAreas;
 
   int get lawnCount => lawnAreas.length;

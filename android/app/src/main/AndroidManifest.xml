@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Map tiles + postcode/address API + Supabase (Phase 2). Debug builds
+         inject this automatically; release builds need it declared. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- geolocator: "use my current location" on the confirm-location step. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- image_picker: camera capture -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- image_picker: photo library on Android 13+ -->

@@ -34,16 +34,13 @@ class _GrassHeightStepScreenState
 
   @override
   Widget build(BuildContext context) {
-    final propertyId =
-        ref.watch(bookingDraftProvider.select((d) => d.propertyId));
-    final selectedIds =
-        ref.watch(bookingDraftProvider.select((d) => d.selectedLawnIds));
-    final grassHeights =
-        ref.watch(bookingDraftProvider.select((d) => d.lawnGrassHeights));
+    final draft = ref.watch(bookingDraftProvider);
+    final grassHeights = draft.lawnGrassHeights;
 
-    final property = mockPropertyById(propertyId);
-    final selectedLawns = property.lawnAreas
-        .where((l) => selectedIds.contains(l.id))
+    // Resolve lawns through the shared seam so both entry paths (returning
+    // property vs guest-created) feed this screen identically.
+    final selectedLawns = resolveBookingLawns(draft)
+        .where((l) => draft.selectedLawnIds.contains(l.id))
         .toList();
 
     return BookingShell(

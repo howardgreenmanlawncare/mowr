@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/booking_draft.dart';
+import '../domain/lawn_area_model.dart';
 import '../domain/property_access_model.dart';
 
 class BookingDraftNotifier extends Notifier<BookingDraft> {
@@ -19,6 +20,63 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
       addressLine1: addressLine1,
       addressCity: addressCity,
       accessNotes: accessNotes,
+    );
+  }
+
+  /// Guest path: records the chosen address plus the postcode centroid as an
+  /// initial location guess (refined on the confirm-location map step).
+  /// This is a brand-new property, so [propertyId] stays null — the guest path
+  /// is identified by draftLawns / a null propertyId.
+  void setGuestAddress({
+    required String addressLine1,
+    required String addressCity,
+    required String postcode,
+    double? lat,
+    double? lng,
+  }) {
+    state = state.copyWith(
+      addressLine1: addressLine1,
+      addressCity: addressCity,
+      postcode: postcode,
+      propertyLat: lat,
+      propertyLng: lng,
+    );
+  }
+
+  /// Confirm-location step: sets the exact property GPS the customer positioned
+  /// under the map pin.
+  void setPropertyLocation(double lat, double lng) {
+    state = state.copyWith(propertyLat: lat, propertyLng: lng);
+  }
+
+  /// Adds a newly created lawn to the guest booking and auto-selects it.
+  void addDraftLawn(LawnArea lawn) {
+    final lawns = [...state.draftLawns, lawn];
+    final selected = [...state.selectedLawnIds, lawn.id];
+    state = state.copyWith(
+      draftLawns: List.unmodifiable(lawns),
+      selectedLawnIds: List.unmodifiable(selected),
+    );
+  }
+
+  void toggleEdging(String lawnId) {
+    final current = Set<String>.from(state.edgedLawnIds);
+    if (current.contains(lawnId)) {
+      current.remove(lawnId);
+    } else {
+      current.add(lawnId);
+    }
+    state = state.copyWith(edgedLawnIds: Set.unmodifiable(current));
+  }
+
+  void removeDraftLawn(String lawnId) {
+    state = state.copyWith(
+      draftLawns:
+          List.unmodifiable(state.draftLawns.where((l) => l.id != lawnId)),
+      selectedLawnIds: List.unmodifiable(
+          state.selectedLawnIds.where((id) => id != lawnId)),
+      edgedLawnIds: Set.unmodifiable(
+          state.edgedLawnIds.where((id) => id != lawnId)),
     );
   }
 
@@ -145,15 +203,16 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
     );
   }
 
-  void updateSchedule({
-    required DateTime scheduledDate,
-    required TimeWindow timeWindow,
-  }) {
-    state = state.copyWith(
-      scheduledDate: scheduledDate,
-      timeWindow: timeWindow,
-    );
-  }
+  void setAsap() => state = state.copyWith(asap: true);
+
+  void setScheduledDate(DateTime date) =>
+      state = state.copyWith(asap: false, scheduledDate: date);
+
+  void setTimeWindow(TimeWindow window) =>
+      state = state.copyWith(timeWindow: window);
+
+  void setAccessProvided(bool provided) =>
+      state = state.copyWith(accessProvided: provided);
 
   void reset() => state = const BookingDraft();
 }

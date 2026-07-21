@@ -6,6 +6,8 @@
 	<string>MOWR needs camera access to add condition photos of your lawn.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>MOWR needs photo library access to add condition photos of your lawn.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MOWR uses your location to pinpoint your property on the map.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

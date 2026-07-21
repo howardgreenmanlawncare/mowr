@@ -5,6 +5,7 @@ import '../../features/booking/presentation/steps/address_step.dart';
 import '../../features/booking/presentation/steps/saved_properties_step.dart';
 import '../../features/booking/presentation/steps/lawn_selection_step.dart';
 import '../../features/booking/presentation/steps/lawn_step.dart';
+import '../../features/booking/presentation/steps/lawn_draw_screen.dart';
 import '../../features/booking/presentation/steps/grass_height_step.dart';
 import '../../features/booking/presentation/steps/lawn_access_step.dart';
 import '../../features/booking/presentation/steps/condition_photos_step.dart';
@@ -45,6 +46,10 @@ final router = GoRouter(
       builder: (context, state) => const LawnStepScreen(),
     ),
     GoRoute(
+      path: LawnDrawScreen.routePath,
+      builder: (context, state) => const LawnDrawScreen(),
+    ),
+    GoRoute(
       path: GrassHeightStepScreen.routePath,
       builder: (context, state) => const GrassHeightStepScreen(),
     ),
@@ -71,12 +76,6 @@ final router = GoRouter(
     GoRoute(
       path: ConfirmationStepScreen.routePath,
       builder: (context, state) => const ConfirmationStepScreen(),
-    ),
-
-    // Lawn-creation entry point — placeholder until Phase 2 map/polygon work.
-    GoRoute(
-      path: '/booking/add-lawn-area',
-      builder: (context, state) => const _AddLawnAreaPlaceholder(),
     ),
   ],
 );
@@ -118,15 +117,15 @@ class _HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               FilledButton.icon(
-                onPressed: () => context.push(SavedPropertiesStepScreen.routePath),
-                icon: const Icon(Icons.home_rounded),
-                label: const Text('Returning customer'),
+                onPressed: () => context.push(PostcodeStepScreen.routePath),
+                icon: const Icon(Icons.grass_rounded),
+                label: const Text('Book a mow'),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
-                onPressed: () => context.push(PostcodeStepScreen.routePath),
-                icon: const Icon(Icons.calendar_month_rounded),
-                label: const Text('Book as guest'),
+                onPressed: () => context.push(SavedPropertiesStepScreen.routePath),
+                icon: const Icon(Icons.home_rounded),
+                label: const Text('My properties'),
               ),
             ],
           ),
@@ -136,20 +135,3 @@ class _HomeScreen extends StatelessWidget {
   }
 }
 
-class _AddLawnAreaPlaceholder extends StatelessWidget {
-  const _AddLawnAreaPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add lawn area')),
-      body: Center(
-        child: Text(
-          'Lawn-creation (draw boundary)\nPhase 2+',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ),
-    );
-  }
-}

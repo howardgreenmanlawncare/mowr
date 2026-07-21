@@ -6,6 +6,7 @@ import '../../mock/mock_properties.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
 import 'grass_height_step.dart';
+import 'lawn_step.dart';
 
 class LawnSelectionStepScreen extends ConsumerStatefulWidget {
   const LawnSelectionStepScreen({super.key});
@@ -26,8 +27,7 @@ class _LawnSelectionStepScreenState
     // initLawnSelection is a no-op if the user has already made a selection
     // and navigated back, preserving their choices.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final propertyId = ref.read(bookingDraftProvider).propertyId;
-      final lawns = mockPropertyById(propertyId).lawnAreas;
+      final lawns = resolveBookingLawns(ref.read(bookingDraftProvider));
       ref.read(bookingDraftProvider.notifier).initLawnSelection(
             lawns.map((l) => l.id).toList(),
           );
@@ -36,13 +36,9 @@ class _LawnSelectionStepScreenState
 
   @override
   Widget build(BuildContext context) {
-    final propertyId = ref.watch(
-      bookingDraftProvider.select((d) => d.propertyId),
-    );
-    final lawns = mockPropertyById(propertyId).lawnAreas;
-    final selectedIds = ref.watch(
-      bookingDraftProvider.select((d) => d.selectedLawnIds),
-    );
+    final draft = ref.watch(bookingDraftProvider);
+    final lawns = resolveBookingLawns(draft);
+    final selectedIds = draft.selectedLawnIds;
 
     return BookingShell(
       stepIndex: kStepLawnSelection,
@@ -100,6 +96,12 @@ class _LawnSelectionBody extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 20),
+        OutlinedButton.icon(
+          onPressed: () => context.push(LawnStepScreen.routePath),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add a new lawn area'),
+        ),
+        const SizedBox(height: 16),
         ...lawns.map(
           (lawn) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -109,12 +111,6 @@ class _LawnSelectionBody extends StatelessWidget {
               onTap: () => onToggle(lawn.id),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        OutlinedButton.icon(
-          onPressed: () => context.push('/booking/add-lawn-area'),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Add another lawn area'),
         ),
       ],
     );

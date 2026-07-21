@@ -145,6 +145,30 @@ in widget files.
 | 4 | Mower app + admin UI + ratings + push notifications |
 | 5 | New services as pure data, polish, store submission |
 
+### Phase 1 scope change (2026-07 — owner decision)
+
+Two things were pulled forward into Phase 1 by explicit owner decision (they
+were previously deferred; the spec's "manual entry only" Phase-1 note is now
+superseded):
+
+- **Map-boundary lawn drawing (Method 2) is now IN Phase 1**, alongside manual
+  entry as a fallback. Draw a polygon on satellite imagery; area + perimeter
+  are derived geodesically (`lib/features/booking/domain/lawn_geometry.dart`,
+  validated numerically). Maps via `flutter_map`; Mapbox satellite when
+  `MAPBOX_TOKEN` is set, free Esri World Imagery otherwise.
+- **Live UK postcode → address lookup is now IN Phase 1.** postcodes.io (free,
+  no key) for the postcode centroid that seeds the map; getAddress.io (needs
+  `GETADDRESS_API_KEY`) for the house-level address list, with a sample-address
+  fallback when no key is set. See `lib/features/booking/data/address_repository.dart`.
+
+Secrets are injected via `--dart-define` (`MAPBOX_TOKEN`, `GETADDRESS_API_KEY`)
+and read only through `lib/core/config/app_config.dart` — never hard-coded.
+
+Guest-path lawns live in `BookingDraft.draftLawns`; both entry paths resolve the
+booking's lawns through `resolveBookingLawns(draft)` (the single seam — see
+Screen wiring above). Still pending from the owner before the price/review step:
+the **pricing formula**.
+
 ---
 
 ## Key constraints

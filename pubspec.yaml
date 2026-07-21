@@ -37,6 +37,14 @@ dependencies:
   image_picker: ^1.1.2
   supabase_flutter: ^2.8.0
 
+  # Property location + lawn-boundary drawing (Phase 1 map measurement).
+  flutter_map: ^8.0.0
+  latlong2: ^0.9.1
+  # Device GPS for "use my current location" on the confirm-location step.
+  geolocator: ^13.0.0
+  # Postcode -> address lookup (postcodes.io + getAddress.io).
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

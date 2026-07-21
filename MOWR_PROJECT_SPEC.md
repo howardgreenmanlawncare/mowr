@@ -711,7 +711,18 @@ First screen on the returning-customer path. Precedes lawn selection.
 > is deliberately narrow; advanced methods recorded as future with their
 > payment ripple explicitly walled off from Phase 1.
 
-**Phase 1 — Manual entry (DECIDED, build now)**
+> **UPDATE 2026-07 (owner decision) — Method 2 pulled into Phase 1.**
+> Map-boundary drawing (Method 2, below) is now built in Phase 1 as the primary
+> measurement method, with manual entry retained as a fallback. The
+> "Phase 1 = manual only" framing below is superseded on that point; the manual
+> path and its perimeter-reliability caveat still stand for customers who use it.
+> Implemented in `lib/features/booking/presentation/steps/lawn_step.dart` +
+> `domain/lawn_geometry.dart`. The on-site price-revision problem walled off
+> under Method 3 remains deferred and is NOT reintroduced — drawn measurements
+> are still single values known at booking, so the §5/§5a payment model is
+> unaffected.
+
+**Phase 1 — Manual entry (retained as fallback; map draw is now primary)**
 
 Per lawn area, the customer manually enters:
 

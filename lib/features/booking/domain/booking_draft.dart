@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'lawn_area_model.dart';
 import 'property_access_model.dart';
 
 // LawnArea (the domain entity) lives in lawn_area_model.dart.
@@ -8,7 +9,7 @@ enum GrassLength { low, medium, high }
 
 enum AccessType { straightforward, restricted, noSideAccess }
 
-enum TimeWindow { morning, afternoon, evening }
+enum TimeWindow { any, morning, afternoon, evening }
 
 /// In-progress booking, persisted in Riverpod across all flow steps.
 ///
@@ -25,6 +26,9 @@ class BookingDraft {
     this.propertyId,
     this.addressLine1,
     this.addressCity,
+    this.propertyLat,
+    this.propertyLng,
+    this.draftLawns = const [],
     this.accessNotes,
     this.selectedLawnIds = const [],
     this.lawnGrassHeights = const {},
@@ -32,9 +36,12 @@ class BookingDraft {
     this.lawnConditionPhotos = const {},
     this.serviceId,
     this.selectedExtraIds = const [],
+    this.edgedLawnIds = const <String>{},
     this.accessType,
     this.scheduledDate,
-    this.timeWindow,
+    this.asap = true,
+    this.timeWindow = TimeWindow.any,
+    this.accessProvided,
   });
 
   final String? postcode;
@@ -44,6 +51,17 @@ class BookingDraft {
 
   final String? addressLine1;
   final String? addressCity;
+
+  /// Precise location of the property being serviced (guest path). Set on the
+  /// confirm-location map step; seeds the lawn-drawing map.
+  final double? propertyLat;
+  final double? propertyLng;
+
+  /// Lawns created in-flow on the guest path (drawn or entered manually).
+  /// The returning-customer path uses saved property lawns instead; see
+  /// resolveBookingLawns() in mock/mock_properties.dart.
+  final List<LawnArea> draftLawns;
+
   final String? accessNotes;
 
   /// IDs of the [LawnArea] entities included in this booking.
@@ -64,15 +82,35 @@ class BookingDraft {
 
   final String? serviceId;
   final List<String> selectedExtraIds;
+
+  /// IDs of lawns the customer has chosen to have edged. Per-lawn, like grass
+  /// height; empty means no edging.
+  final Set<String> edgedLawnIds;
+
   final AccessType? accessType;
+
+  /// The specific date the customer chose. Ignored when [asap] is true.
   final DateTime? scheduledDate;
-  final TimeWindow? timeWindow;
+
+  /// True = "as soon as possible" (default); false = use [scheduledDate].
+  final bool asap;
+
+  /// Preferred time of day; defaults to [TimeWindow.any].
+  final TimeWindow timeWindow;
+
+  /// Access fork (spec §5a). true = access is available without the customer
+  /// present (gate open / open frontage); false = the customer will be home to
+  /// let the mower in. Null until answered on the schedule step.
+  final bool? accessProvided;
 
   BookingDraft copyWith({
     String? postcode,
     String? propertyId,
     String? addressLine1,
     String? addressCity,
+    double? propertyLat,
+    double? propertyLng,
+    List<LawnArea>? draftLawns,
     String? accessNotes,
     List<String>? selectedLawnIds,
     Map<String, GrassLength>? lawnGrassHeights,
@@ -80,15 +118,21 @@ class BookingDraft {
     Map<String, List<String>>? lawnConditionPhotos,
     String? serviceId,
     List<String>? selectedExtraIds,
+    Set<String>? edgedLawnIds,
     AccessType? accessType,
     DateTime? scheduledDate,
+    bool? asap,
     TimeWindow? timeWindow,
+    bool? accessProvided,
   }) {
     return BookingDraft(
       postcode: postcode ?? this.postcode,
       propertyId: propertyId ?? this.propertyId,
       addressLine1: addressLine1 ?? this.addressLine1,
       addressCity: addressCity ?? this.addressCity,
+      propertyLat: propertyLat ?? this.propertyLat,
+      propertyLng: propertyLng ?? this.propertyLng,
+      draftLawns: draftLawns ?? this.draftLawns,
       accessNotes: accessNotes ?? this.accessNotes,
       selectedLawnIds: selectedLawnIds ?? this.selectedLawnIds,
       lawnGrassHeights: lawnGrassHeights ?? this.lawnGrassHeights,
@@ -96,9 +140,12 @@ class BookingDraft {
       lawnConditionPhotos: lawnConditionPhotos ?? this.lawnConditionPhotos,
       serviceId: serviceId ?? this.serviceId,
       selectedExtraIds: selectedExtraIds ?? this.selectedExtraIds,
+      edgedLawnIds: edgedLawnIds ?? this.edgedLawnIds,
       accessType: accessType ?? this.accessType,
       scheduledDate: scheduledDate ?? this.scheduledDate,
+      asap: asap ?? this.asap,
       timeWindow: timeWindow ?? this.timeWindow,
+      accessProvided: accessProvided ?? this.accessProvided,
     );
   }
 }
