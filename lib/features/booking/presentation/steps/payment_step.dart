@@ -82,7 +82,7 @@ class _PaymentStepScreenState extends ConsumerState<PaymentStepScreen> {
     );
 
     return BookingShell(
-      stepIndex: kStepReview,
+      stepIndex: kStepPayment,
       stepLabel: 'Payment',
       bottomBar: SafeArea(
         child: Padding(

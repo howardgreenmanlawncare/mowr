@@ -5,6 +5,89 @@ day-to-day conventions. Update both files together when decisions change.
 
 ---
 
+## Current state (handoff, 2026-07-22)
+
+Work is well ahead of the "Phase 0 complete" line in the roadmap table below —
+that table is the original plan; this section is where things actually stand.
+`flutter analyze` is clean.
+
+**On-device status (2026-07-22):** the guest booking flow was walked end to end
+on an Android emulator (Pixel 8, API 37), welcome → review & price. Live
+postcode lookup, manual lawn entry, per-lawn grass height, access, edging
+toggle and the priced review screen all work and carry state correctly through
+`BookingDraft`. Not yet exercised on-device: account creation, the Stripe
+payment step, confirmation, and the whole mower app.
+
+**Built so far**
+- **Customer booking flow (Phase 1)** — guest property setup: postcode→address
+  lookup, confirm-location satellite map, and map-boundary lawn drawing with
+  live geodesic area/perimeter (+ manual fallback). Branch
+  `feat/property-setup-map-flow`.
+- **Mower app** — home dashboard, job lists (Available / Mine / History), job
+  detail, and on-site **re-measure + reprice** with tiered payment capture
+  (migrations `0006_remeasure.sql`, `0007_remeasure_override.sql`;
+  `capture-payment` edge function).
+- **Stripe Connect payouts** — mowers onboard an Express account; job completion
+  transfers their share. Migration `0008_connect.sql`; edge functions
+  `connect-onboard` / `connect-status` / `connect-dashboard` / `connect-return`
+  / `connect-balance`. Per-mower commission (`profiles.commission_pct`, default
+  15%).
+- **Earnings + bottom nav (this session)** — mower bottom nav **Home / Jobs /
+  Earnings** (`mower_home_screen.dart`), Available/Mine/History as a
+  `SegmentedButton` inside Jobs. New **earnings screen**
+  (`mower_earnings_screen.dart`) with Today / 7 days / 30 days / YTD / Custom
+  filter chips calling the deployed `mower_earnings(p_from, p_to)` RPC, plus
+  **CSV export** of the filtered rows via `share_plus`. The Stripe payout/bank UI
+  moved to `mower_payouts_screen.dart` (route `/mower/payouts`). Domain model
+  `mower_earnings.dart`; repo method `MowerRepository.earnings()`. New deps:
+  `share_plus`, `path_provider`.
+
+`mower_earnings(p_from date, p_to date)` returns
+`{from, to, totals:{jobs, gross, fees, net}, jobs:[{booking_id, completed_date,
+line1, city, postcode, job_total, commission_amount, mower_amount}]}`, scoped to
+the signed-in mower.
+
+**Setup Howard still has to do (once)**
+- Enable **Stripe Connect** in the Stripe dashboard (test mode) before payout
+  onboarding will work.
+- Ensure migrations `0006` → `0007` → `0008` are applied (in order).
+- Deploy edge functions: `capture-payment`, `connect-onboard`, `connect-status`,
+  `connect-dashboard`, `connect-balance`, and `connect-return`
+  (`connect-return` with `--no-verify-jwt`).
+- `flutter pub get` (picks up `share_plus` + `path_provider`).
+
+**Open TODOs**
+- **Pricing numbers** — the engine is built and verified live
+  (`lib/features/booking/domain/pricing.dart`); what's outstanding is the
+  owner's real rates. `PricingRules` currently ships placeholder defaults:
+  mow £12 turn-up / £0.15 per m² / £20 minimum; edging £6 turn-up / £0.40 per
+  metre / £10 minimum; height multipliers 1.0 / 1.6 / 2.0. Verified on-device:
+  120 m² medium + 45 m edge = £40.80 + £24.00 = £64.80. Swapping these for real
+  figures is a `PricingRules` change only — and in Phase 2 they move to
+  `pricing_rules` rows. All pricing must keep going through the single
+  `PricingEngine`.
+- Customer-facing **revision-approval UI** (backend `respond_to_revision` is
+  ready; no customer post-booking surface yet).
+- **Admin UI** for approving mowers and editing commission / revise threshold
+  (currently SQL only). `admin_repository.dart` is still an empty stub.
+
+**No longer true (was listed as outstanding, now built)** — service/edging,
+schedule, review/price and confirmation steps all exist and are wired.
+
+**Fixed 2026-07-22 — booking step counter.** `booking_shell.dart` numbered the
+steps wrongly: `kStepLawn`/`kStepGrassHeight` were both `3`, and `kStepReview`
+(8) was reused by `review_step`, `account_step` and `payment_step`. A guest
+never saw "3 of 10", saw "4 of 10" twice and "9 of 10" three times, and the
+progress bar stalled. Each screen now has a distinct index and
+`kBookingStepCount` is **11** (both paths have 11 `BookingShell` screens; the
+two entry screens differ per path, then they converge). Verified on-device:
+1 → 2 → 3 → 8 → 9 of 11 with the bar advancing each time. Note the rule in the
+file's doc comment — two constants may share an index only when they are
+*alternative* screens at the same position on different paths, never sequential
+screens on the same path.
+
+---
+
 ## What MOWR is
 
 On-demand lawn mowing marketplace. Three roles, one Flutter app, one Supabase
@@ -157,11 +240,13 @@ superseded):
   validated numerically). Maps via `flutter_map`; Mapbox satellite when
   `MAPBOX_TOKEN` is set, free Esri World Imagery otherwise.
 - **Live UK postcode → address lookup is now IN Phase 1.** postcodes.io (free,
-  no key) for the postcode centroid that seeds the map; getAddress.io (needs
-  `GETADDRESS_API_KEY`) for the house-level address list, with a sample-address
-  fallback when no key is set. See `lib/features/booking/data/address_repository.dart`.
+  no key) for the postcode centroid that seeds the map; Ideal Postcodes (needs
+  `IDEAL_POSTCODES_API_KEY`) for the house-level address list, with a
+  sample-address fallback when no key is set. See
+  `lib/features/booking/data/address_repository.dart`.
 
-Secrets are injected via `--dart-define` (`MAPBOX_TOKEN`, `GETADDRESS_API_KEY`)
+Secrets are injected via `--dart-define` (`MAPBOX_TOKEN`,
+`IDEAL_POSTCODES_API_KEY`)
 and read only through `lib/core/config/app_config.dart` — never hard-coded.
 
 Guest-path lawns live in `BookingDraft.draftLawns`; both entry paths resolve the

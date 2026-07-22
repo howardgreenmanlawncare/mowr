@@ -122,7 +122,7 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
     final theme = Theme.of(context);
 
     return BookingShell(
-      stepIndex: kStepReview,
+      stepIndex: kStepAccount,
       stepLabel: _signInMode ? 'Sign in' : 'Create your account',
       bottomBar: SafeArea(
         child: Padding(
