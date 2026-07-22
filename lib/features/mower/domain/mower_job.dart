@@ -16,6 +16,8 @@ class MowerJob {
     this.lat,
     this.lng,
     this.accessNotes,
+    this.mowerAmount,
+    this.commissionAmount,
   });
 
   final String bookingId;
@@ -33,6 +35,12 @@ class MowerJob {
   final double? lat;
   final double? lng;
   final String? accessNotes;
+
+  /// Settled payout to the mower (present once the job is completed).
+  final double? mowerAmount;
+
+  /// MOWR's settled commission on the job (present once completed).
+  final double? commissionAmount;
 
   String get addressLine =>
       [line1, city, postcode].where((s) => (s ?? '').trim().isNotEmpty).join(', ');
@@ -64,6 +72,8 @@ class MowerJob {
       accessProvided: json['access_provided'] as bool?,
       lawnCount: (json['lawn_count'] as num?)?.toInt() ?? 0,
       totalArea: toD(json['total_area']),
+      mowerAmount: (json['mower_amount'] as num?)?.toDouble(),
+      commissionAmount: (json['commission_amount'] as num?)?.toDouble(),
       scheduledDate: json['scheduled_date'] == null
           ? null
           : DateTime.tryParse(json['scheduled_date'] as String),
