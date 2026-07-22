@@ -19,6 +19,10 @@ import '../../features/onboarding/presentation/email_capture_screen.dart';
 import '../../features/payment/presentation/payment_methods_screen.dart';
 import '../../features/mower/presentation/mower_auth_screen.dart';
 import '../../features/mower/presentation/mower_home_screen.dart';
+import '../../features/mower/presentation/mower_job_detail_screen.dart';
+import '../../features/mower/presentation/mower_remeasure_screen.dart';
+import '../../features/mower/presentation/mower_earnings_screen.dart';
+import '../../features/mower/presentation/mower_payouts_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -108,6 +112,24 @@ final router = GoRouter(
     GoRoute(
       path: MowerHomeScreen.routePath,
       builder: (context, state) => const MowerHomeScreen(),
+    ),
+    GoRoute(
+      path: '/mower/job/:id',
+      builder: (context, state) =>
+          MowerJobDetailScreen(bookingId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/mower/job/:id/remeasure',
+      builder: (context, state) =>
+          MowerRemeasureScreen(bookingId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: MowerEarningsScreen.routePath,
+      builder: (context, state) => const MowerEarningsScreen(),
+    ),
+    GoRoute(
+      path: MowerPayoutsScreen.routePath,
+      builder: (context, state) => const MowerPayoutsScreen(),
     ),
   ],
 );
