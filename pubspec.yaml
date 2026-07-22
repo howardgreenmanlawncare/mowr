@@ -46,6 +46,12 @@ dependencies:
   http: ^1.2.0
   # Payments — Stripe PaymentSheet (add/save card).
   flutter_stripe: ^11.1.0
+  # Open Stripe Connect onboarding + Express dashboard in the browser.
+  url_launcher: ^6.3.0
+  # Earnings CSV export via the system share sheet (XFile comes from here too).
+  share_plus: ^13.1.0
+  # Temp-file location for the generated CSV before sharing.
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
