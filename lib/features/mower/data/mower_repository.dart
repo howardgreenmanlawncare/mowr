@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../domain/commission_status.dart';
 import '../domain/mower_account.dart';
 import '../domain/mower_earnings.dart';
 import '../domain/mower_job.dart';
@@ -137,6 +138,60 @@ class MowerRepository {
     return MowerAccount.fromJson(Map<String, dynamic>.from(res as Map));
   }
 
+  /// Opt this mower in/out of night-before auto-allocation.
+  Future<void> setAutoAllocate(bool on) =>
+      _client.rpc('set_auto_allocate', params: {'p_on': on});
+
+  /// Weather per visible job (booking_id → rain risk), from the nightly
+  /// weather sweep. Lets the app badge dry vs rain-risk work so a mowr can pick
+  /// up dry jobs nearby when their own area is wet. Best-effort — returns an
+  /// empty map if the weather feature isn't live yet.
+  Future<Map<String, bool>> jobsWeather() async {
+    try {
+      final res = await _client.rpc('mowr_jobs_weather');
+      final out = <String, bool>{};
+      for (final e in (res as List? ?? const [])) {
+        final m = Map<String, dynamic>.from(e as Map);
+        final id = m['booking_id'] as String?;
+        if (id != null && m['rain_risk'] != null) {
+          out[id] = m['rain_risk'] == true;
+        }
+      }
+      return out;
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// Release a not-yet-started job back to the pool. If it was auto-allocated,
+  /// this is recorded as a refusal; too many auto-accept refusals in 30 days
+  /// auto-pauses the mower's auto-accept. Returns
+  /// `{ was_auto, refusals_30d, auto_paused, threshold }`.
+  Future<Map<String, dynamic>> releaseJob(String bookingId,
+      {String? reason}) async {
+    final res = await _client.rpc('release_auto_job',
+        params: {'p_booking_id': bookingId, 'p_reason': reason});
+    return Map<String, dynamic>.from(res as Map);
+  }
+
+  /// Cancel a job the mower has already started progressing (accepted →
+  /// in_progress). Returns it to the pool and records a reliability event;
+  /// cancelling after going en route (address was unlocked) is flagged to admin
+  /// as a possible off-app job. Returns
+  /// `{ was_visited, refusals_30d, auto_paused }`.
+  Future<Map<String, dynamic>> cancelJob(String bookingId,
+      {String? reason}) async {
+    final res = await _client.rpc('mower_cancel_job',
+        params: {'p_booking_id': bookingId, 'p_reason': reason});
+    return Map<String, dynamic>.from(res as Map);
+  }
+
+  /// The mower's commission standing + what's needed for the next reduction.
+  Future<CommissionStatus> commissionStatus() async {
+    final res = await _client.rpc('mower_commission_status');
+    return CommissionStatus.fromJson(Map<String, dynamic>.from(res as Map));
+  }
+
   /// Starts (or resumes) Stripe Connect onboarding. Returns the hosted URL to
   /// open in the browser.
   Future<String> startConnectOnboarding() async {
@@ -158,6 +213,7 @@ class MowerRepository {
     final data = res.data;
     return data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
   }
+
 
   /// Stripe balance + next expected payout for the "expected payouts" card.
   /// Returns { exists, available, pending, nextPayout, recent } (amounts pence).

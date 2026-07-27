@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/mower_repository.dart';
 import '../domain/mower_account.dart';
 import '../domain/mower_job.dart';
 import 'mower_dashboard_view.dart';
 import 'mower_earnings_screen.dart';
+import '../domain/schedule.dart';
+import 'mower_day_fit_sheet.dart';
 import 'mower_payouts_screen.dart';
+import 'mower_route_screen.dart';
+import 'mower_verify_phone_screen.dart';
 
 class MowerHomeScreen extends ConsumerStatefulWidget {
   const MowerHomeScreen({super.key});
@@ -33,6 +38,7 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
   List<MowerJob> _available = const [];
   List<MowerJob> _mine = const [];
   List<MowerJob> _history = const [];
+  Map<String, bool> _weather = const {};
   String? _error;
 
   @override
@@ -57,6 +63,7 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
       final available = await repo.availableJobs();
       final mine = await repo.myJobs();
       final history = await repo.jobHistory();
+      final weather = await repo.jobsWeather();
       Map<String, dynamic>? balance;
       if (account.connectOnboarded) {
         try {
@@ -71,6 +78,7 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
         _available = available;
         _mine = mine;
         _history = history;
+        _weather = weather;
         _loading = false;
       });
     } catch (_) {
@@ -83,6 +91,17 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
   }
 
   Future<void> _accept(MowerJob job) async {
+    // Re-optimise the day with this job included and show the mower the impact
+    // (where it slots, new finish, extra driving) before they commit.
+    final today = DateTime.now();
+    final fit = const SchedulingEngine().assessInsertion(
+      candidate: job,
+      committed: _mine,
+      today: DateTime(today.year, today.month, today.day),
+    );
+    final confirmed = await MowerDayFitSheet.show(context, job: job, fit: fit);
+    if (confirmed != true || !mounted) return;
+
     try {
       final won = await ref.read(mowerRepositoryProvider).acceptJob(job.bookingId);
       if (!mounted) return;
@@ -102,6 +121,21 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
 
   void _openPayouts() {
     context.push(MowerPayoutsScreen.routePath).then((_) => _load());
+  }
+
+  void _openVerifyPhone() {
+    context.push(MowerVerifyPhoneScreen.routePath).then((_) => _load());
+  }
+
+  Future<void> _toggleAutoAllocate(bool on) async {
+    setState(() {
+      _account = _account?.copyWith(autoAllocate: on);
+    });
+    try {
+      await ref.read(mowerRepositoryProvider).setAutoAllocate(on);
+    } catch (_) {
+      if (mounted) _load(); // revert to server truth on failure
+    }
   }
 
   void _openJob(String id) {
@@ -125,6 +159,11 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
   Widget? _banner(MowerAccount? acct) {
     if (acct == null) return null;
     if (acct.actionRequired) return _ActionRequiredBanner(onTap: _openPayouts);
+    // Phone before payouts: it's the first thing a new mower must clear, and
+    // the dedup anchor for the account.
+    if (!acct.phoneVerified) {
+      return _VerifyPhoneBanner(onTap: _openVerifyPhone);
+    }
     if (!acct.connectOnboarded) return _SetupPayoutsBanner(onTap: _openPayouts);
     if (!acct.approved) return const _PendingBanner();
     return null;
@@ -184,6 +223,11 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
           : Column(
               children: [
                 ?banner,
+                if (acct != null && acct.canWork)
+                  _AutoAllocateCard(
+                    on: acct.autoAllocate,
+                    onChanged: _toggleAutoAllocate,
+                  ),
                 Expanded(
                   child: acct == null
                       ? Center(child: Text(_error ?? 'Could not load'))
@@ -212,6 +256,11 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
       appBar: AppBar(
         title: const Text('Jobs'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.route_rounded),
+            tooltip: 'My route',
+            onPressed: () => context.push(MowerRouteScreen.routePath),
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Sign out',
@@ -255,6 +304,7 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
                         showAccept: canWork,
                         error: _error,
                         commissionPct: pct,
+                        weather: _weather,
                       ),
                       _JobList(
                         jobs: _mine,
@@ -265,6 +315,7 @@ class _MowerHomeScreenState extends ConsumerState<MowerHomeScreen> {
                         error: _error,
                         commissionPct: pct,
                         onTap: (job) => _openJob(job.bookingId),
+                        weather: _weather,
                       ),
                       _JobList(
                         jobs: _history,
@@ -310,6 +361,94 @@ class _ActionRequiredBanner extends StatelessWidget {
                 ),
               ),
               const Icon(Icons.chevron_right_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AutoAllocateCard extends StatelessWidget {
+  const _AutoAllocateCard({required this.on, required this.onChanged});
+  final bool on;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+        decoration: BoxDecoration(
+          color: on ? cs.primaryContainer : cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.auto_awesome_rounded,
+                size: 20,
+                color: on ? cs.onPrimaryContainer : cs.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Auto-plan my day',
+                      style: text.labelLarge?.copyWith(
+                          color: on
+                              ? cs.onPrimaryContainer
+                              : cs.onSurface)),
+                  Text(
+                    on
+                        ? 'MOWR assigns you jobs the night before, routed efficiently.'
+                        : 'Let MOWR fill your day automatically instead of picking jobs.',
+                    style: text.bodySmall?.copyWith(
+                        color: on
+                            ? cs.onPrimaryContainer
+                            : cs.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+            Switch(value: on, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VerifyPhoneBanner extends StatelessWidget {
+  const _VerifyPhoneBanner({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: cs.secondaryContainer,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          child: Row(
+            children: [
+              Icon(Icons.sms_outlined,
+                  size: 20, color: cs.onSecondaryContainer),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Verify your mobile number to start taking jobs — we’ll text '
+                  'you a code.',
+                  style: TextStyle(
+                      fontSize: 12, color: cs.onSecondaryContainer),
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: cs.onSecondaryContainer),
             ],
           ),
         ),
@@ -390,6 +529,7 @@ class _JobList extends StatelessWidget {
     required this.commissionPct,
     this.onTap,
     this.completed = false,
+    this.weather = const {},
   });
 
   final List<MowerJob> jobs;
@@ -401,6 +541,7 @@ class _JobList extends StatelessWidget {
   final double commissionPct;
   final void Function(MowerJob)? onTap;
   final bool completed;
+  final Map<String, bool> weather;
 
   @override
   Widget build(BuildContext context) {
@@ -416,7 +557,8 @@ class _JobList extends StatelessWidget {
                     child: Text(
                       error ?? emptyText,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey.shade600),
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(color: AppColors.textSecondary),
                     ),
                   ),
                 ),
@@ -431,6 +573,7 @@ class _JobList extends StatelessWidget {
                   job: jobs[i],
                   completed: completed,
                   commissionPct: commissionPct,
+                  rainRisk: weather[jobs[i].bookingId],
                   onAccept:
                       showAccept && onAccept != null ? () => onAccept!(jobs[i]) : null,
                   onTap: onTap == null ? null : () => onTap!(jobs[i]),
@@ -448,6 +591,7 @@ class _JobCard extends StatelessWidget {
     required this.commissionPct,
     this.onTap,
     this.completed = false,
+    this.rainRisk,
   });
 
   final MowerJob job;
@@ -455,112 +599,120 @@ class _JobCard extends StatelessWidget {
   final double commissionPct;
   final VoidCallback? onTap;
   final bool completed;
+  final bool? rainRisk;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     // Use the settled payout on completed jobs; estimate it otherwise.
     final actualEarned = completed ? job.mowerAmount : null;
     final earned =
         actualEarned ?? job.totalAmount * (1 - commissionPct / 100);
     final showFee = actualEarned == null;
     return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
         child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    job.addressLine,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 15),
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(job.addressLine, style: text.titleMedium),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '£${job.totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: cs.primary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 14,
-              runSpacing: 4,
-              children: [
-                _meta(Icons.grass_rounded,
-                    '${job.lawnCount} lawn${job.lawnCount == 1 ? '' : 's'} · ${job.totalArea.toStringAsFixed(0)} m²'),
-                _meta(Icons.event_rounded, job.whenLabel),
-                if (completed)
-                  _meta(Icons.check_circle_rounded, 'Completed')
-                else
-                  _meta(
-                    job.accessProvided == true
-                        ? Icons.lock_open_rounded
-                        : Icons.person_rounded,
-                    job.accessProvided == true ? 'Access provided' : 'Customer home',
+                  const SizedBox(width: 12),
+                  Text(
+                    '£${job.totalAmount.toStringAsFixed(2)}',
+                    style: text.titleMedium?.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()]),
                   ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.payments_rounded, size: 15, color: cs.primary),
-                const SizedBox(width: 4),
-                Text(
-                  'You ${completed ? 'earned' : 'earn'} '
-                  '£${earned.toStringAsFixed(2)}',
-                  style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
-                      color: cs.primary),
-                ),
-                if (showFee) ...[
-                  const SizedBox(width: 6),
-                  Text('after ${commissionPct.toStringAsFixed(0)}% fee',
-                      style:
-                          TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                 ],
-              ],
-            ),
-            if (onAccept != null) ...[
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: onAccept,
-                icon: const Icon(Icons.check_rounded),
-                label: const Text('Accept job'),
               ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 14,
+                runSpacing: 4,
+                children: [
+                  _meta(Icons.grass_rounded,
+                      '${job.lawnCount} lawn${job.lawnCount == 1 ? '' : 's'} · ${job.totalArea.toStringAsFixed(0)} m²'),
+                  _meta(Icons.event_rounded, job.whenLabel),
+                  if (rainRisk == true)
+                    _wx(true)
+                  else if (rainRisk == false)
+                    _wx(false),
+                  if (completed)
+                    _meta(Icons.check_circle_rounded, 'Completed')
+                  else
+                    _meta(
+                      job.accessProvided == true
+                          ? Icons.lock_open_rounded
+                          : Icons.person_rounded,
+                      job.accessProvided == true
+                          ? 'Access provided'
+                          : 'Customer home',
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'You ${completed ? 'earned' : 'earn'} £${earned.toStringAsFixed(2)}'
+                '${showFee ? '  ·  after ${commissionPct.toStringAsFixed(0)}% fee' : ''}',
+                style: text.bodySmall?.copyWith(
+                    color: AppColors.green,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()]),
+              ),
+              if (onAccept != null) ...[
+                const SizedBox(height: 14),
+                FilledButton(
+                  onPressed: onAccept,
+                  child: const Text('Accept job'),
+                ),
+              ],
             ],
-          ],
-        ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _meta(IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 15, color: Colors.grey.shade600),
-        const SizedBox(width: 4),
-        Text(text,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
-      ],
+  Widget _meta(IconData icon, String label) {
+    return Builder(builder: (context) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.textSecondary),
+          const SizedBox(width: 5),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      );
+    });
+  }
+
+  /// Weather badge from the nightly sweep — dry work stands out when a mowr's
+  /// own area is wet.
+  Widget _wx(bool rain) {
+    final c = rain ? AppColors.warningInk : AppColors.greenDark;
+    final bg = rain ? AppColors.warningPale : AppColors.greenPale;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(rain ? Icons.umbrella_rounded : Icons.wb_sunny_rounded,
+              size: 13, color: c),
+          const SizedBox(width: 4),
+          Text(rain ? 'Rain likely' : 'Dry',
+              style: TextStyle(
+                  fontSize: 12, color: c, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }
