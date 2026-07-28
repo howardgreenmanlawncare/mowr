@@ -246,7 +246,7 @@ payment step, confirmation, and the whole mower app.
   surface for chat/reliability flags. `AdminRepository.supportTickets` /
   `resolveTicket` / `openTicketCount`.
 - **Preferred mowrs — keep the mowr you liked (2026-07-27)** —
-  `0026_preferred_mowrs.sql` (**apply pending — MCP read-only this session**).
+  `0026_preferred_mowrs.sql` (**applied + verified 2026-07-28**).
   A `preferred_mowrs` table (customer_id, mowr_id; owner-RLS) + RPCs:
   `add_preferred_mowr(booking)` (anchored to a *completed* job the caller owns),
   `remove_preferred_mowr`, `list_preferred_mowrs`, and
@@ -263,6 +263,18 @@ payment step, confirmation, and the whole mower app.
   "Move here" reschedule via `reschedule_booking`). `flutter analyze` clean;
   unverified on device (needs the migration applied + a completed job). Also
   portrayed on the marketing site ("Your mowr, on repeat" section + FAQ).
+- **Weather-aware scheduling (2026-07-28)** — `0027_weather.sql` (**applied**) +
+  edge fn **`weather-sweep`** (**deployed + scheduled**). Keyless **Open-Meteo**
+  (no API key): a nightly sweep (pg_cron `weather-sweep` 20:00) reads the
+  forecast per property for upcoming jobs, flags each `rain_risk` true/false
+  (`set_job_weather`), and **moves rained-off recurring jobs to the next dry
+  day** (`weather_reschedule` → back to the pool, customer emailed) instead of
+  skipping a week. One-offs are just flagged. `mowr_jobs_weather()` feeds a
+  **Dry / Rain-likely badge** on the mower job list so a mowr can pick up dry
+  work nearby when their own area's wet. Cron order: weather-sweep 20:00 →
+  generate-recurring 06:00 → allocate-tomorrow 06:10. Verified live 2026-07-28
+  (function returns ok; no upcoming jobs to flag yet). Marketing site portrays
+  it ("Never lose a week to the weather" + a weather-reschedule screen mockup).
 - **Merged AI chat assistant (2026-07-24)** — one conversational surface for
   customers: support Q&A + record actions + new-booking hand-off + human
   escalation. `supabase/functions/assistant/index.ts` runs a Claude
