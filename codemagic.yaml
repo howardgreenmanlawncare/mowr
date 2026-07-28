@@ -41,20 +41,24 @@ workflows:
     integrations:
       app_store_connect: mowr
     environment:
-      # Automatic code signing: with the `mowr` App Store Connect integration
-      # connected, Codemagic fetches/creates the distribution certificate AND
-      # the App Store provisioning profile for this bundle id, then applies them.
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: uk.co.mowr.mowr
       vars:
         BUNDLE_ID: "uk.co.mowr.mowr"
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up code signing on the Xcode project
+      - name: Set up code signing
         script: |
+          set -e
+          keychain initialize
+          # 1) Distribution certificate — generates + keeps the private key for
+          #    this build. Fails loudly if the account is at its cert limit.
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save
+          # 2) App Store provisioning profile for the bundle id (create if none).
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE --create
+          # 3) Import the cert into the keychain and apply the profile.
+          keychain add-certificates
           xcode-project use-profiles
       - name: Flutter packages
         script: |
