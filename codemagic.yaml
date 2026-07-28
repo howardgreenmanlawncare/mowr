@@ -50,8 +50,13 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Fetch signing files
+      - name: Set up code signing (creates cert + profile via the API key)
         script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
           xcode-project use-profiles
       - name: Flutter packages
         script: |
