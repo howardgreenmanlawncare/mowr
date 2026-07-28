@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../booking/presentation/steps/saved_properties_step.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/ui.dart';
+import '../../auth/presentation/sign_in_screen.dart';
+import '../../booking/presentation/customer_nav_bar.dart';
 import '../../mower/presentation/mower_auth_screen.dart';
 import 'email_capture_screen.dart';
 
@@ -10,71 +13,49 @@ import 'email_capture_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
+  static const routePath = '/';
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
     return Scaffold(
+      bottomNavigationBar: const CustomerNavBar(current: CustomerTab.home),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const _BrandMark(),
+              const SizedBox(height: 34),
+              const Eyebrow('Vetted local mowers'),
               const SizedBox(height: 12),
-              Center(
-                child: CircleAvatar(
-                  radius: 34,
-                  backgroundColor: cs.primaryContainer,
-                  child: Icon(Icons.grass_rounded,
-                      size: 38, color: cs.onPrimaryContainer),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'MOWR',
-                  style: TextStyle(
-                    color: cs.primary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 30,
-                    letterSpacing: 4,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Lawn mowing,\non demand.',
-                style: theme.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                ),
-              ),
+              Text('Lawn mowing,\non demand.',
+                  style: theme.textTheme.headlineMedium),
               const SizedBox(height: 12),
               Text(
-                'Draw your lawn, see your price in seconds, and book a vetted '
-                'local mower. No waiting around for quotes.',
+                'Draw your lawn, get an instant price, and book a vetted local '
+                'mower. Pay only when it’s done.',
                 style: theme.textTheme.bodyLarge
-                    ?.copyWith(color: Colors.grey.shade700, height: 1.4),
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
-              const SizedBox(height: 28),
-              const _HowItWorks(),
-              const SizedBox(height: 32),
-              FilledButton.icon(
+              const Hairline(),
+              const _Steps(),
+              const SizedBox(height: 22),
+              FilledButton(
                 onPressed: () => context.push(EmailCaptureScreen.routePath),
-                icon: const Icon(Icons.arrow_forward_rounded),
-                label: const Text('See my price'),
+                child: const Text('Book a MOWR'),
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () =>
-                    context.push(SavedPropertiesStepScreen.routePath),
-                child: const Text("I've booked before"),
+              const SizedBox(height: 10),
+              OutlinedButton(
+                onPressed: () => context.push(SignInScreen.routePath),
+                child: const Text('Sign in'),
               ),
-              TextButton(
-                onPressed: () => context.push(MowerAuthScreen.routePath),
-                child: const Text('Are you a mower? Sign in'),
+              const SizedBox(height: 22),
+              _LinkRow(
+                label: 'Become a MOWR',
+                onTap: () => context.push(MowerAuthScreen.routePath),
               ),
             ],
           ),
@@ -84,33 +65,40 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _HowItWorks extends StatelessWidget {
-  const _HowItWorks();
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
 
   @override
   Widget build(BuildContext context) {
+    return Center(
+      child: Image.asset(
+        'assets/brand/mowr_wordmark.png',
+        height: 28,
+        filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+}
+
+class _Steps extends StatelessWidget {
+  const _Steps();
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      ('01', 'Map your lawn', 'Trace it on the map — measured exactly.'),
+      ('02', 'Get an instant price', 'Clear and upfront. No haggling.'),
+      ('03', 'A local mower turns up', 'Pay only once it’s done.'),
+    ];
     return Column(
-      children: const [
-        _Step(
-          number: '1',
-          icon: Icons.draw_rounded,
-          title: 'Map your lawn',
-          subtitle: 'Trace it on the map — we measure it exactly.',
-        ),
-        SizedBox(height: 14),
-        _Step(
-          number: '2',
-          icon: Icons.receipt_long_rounded,
-          title: 'Get an instant price',
-          subtitle: 'A clear, upfront price. No haggling.',
-        ),
-        SizedBox(height: 14),
-        _Step(
-          number: '3',
-          icon: Icons.grass_rounded,
-          title: 'A local mower does the job',
-          subtitle: 'Pay only once it’s done.',
-        ),
+      children: [
+        for (var i = 0; i < items.length; i++)
+          _Step(
+            index: items[i].$1,
+            title: items[i].$2,
+            subtitle: items[i].$3,
+            topBorder: i > 0,
+          ),
       ],
     );
   }
@@ -118,48 +106,79 @@ class _HowItWorks extends StatelessWidget {
 
 class _Step extends StatelessWidget {
   const _Step({
-    required this.number,
-    required this.icon,
+    required this.index,
     required this.title,
     required this.subtitle,
+    required this.topBorder,
   });
 
-  final String number;
-  final IconData icon;
+  final String index;
   final String title;
   final String subtitle;
+  final bool topBorder;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: cs.primaryContainer.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: topBorder
+          ? const BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.border)))
+          : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 26,
+            child: Text(index,
+                style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppColors.green,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()])),
           ),
-          child: Icon(icon, color: cs.primary),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800, fontSize: 15)),
-              const SizedBox(height: 2),
-              Text(subtitle,
-                  style:
-                      TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-            ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(subtitle, style: theme.textTheme.bodySmall),
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.border)),
         ),
-      ],
+        child: Row(
+          children: [
+            Expanded(
+                child: Text(label,
+                    style: theme.textTheme.bodyLarge)),
+            const Icon(Icons.arrow_forward,
+                size: 18, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
     );
   }
 }

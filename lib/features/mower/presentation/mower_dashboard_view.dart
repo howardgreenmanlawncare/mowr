@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/ui.dart';
 import '../domain/mower_account.dart';
 
 /// The mower's home landing: at-a-glance earnings, available work, active job
@@ -29,7 +31,6 @@ class MowerDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final todayEarnings = _d(stats['today_earnings']);
     final todayJobs = _i(stats['today_jobs']);
     final available = _i(stats['available_count']);
@@ -39,42 +40,31 @@ class MowerDashboard extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [
-          Text('Today', style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _StatTile(
-                icon: Icons.payments_rounded,
-                value: '£${todayEarnings.toStringAsFixed(2)}',
-                label: 'Earned today',
-                color: cs.primary,
-              ),
-              const SizedBox(width: 12),
-              _StatTile(
-                icon: Icons.grass_rounded,
-                value: '$todayJobs',
-                label: todayJobs == 1 ? 'Job done' : 'Jobs done',
-                color: cs.primary,
-              ),
+          StatHero(
+            label: 'Earned today',
+            value: '£${todayEarnings.toStringAsFixed(2)}',
+            secondary: [
+              ('$todayJobs', 'Jobs today'),
+              ('£${weekEarnings.toStringAsFixed(0)}', 'This week'),
             ],
           ),
-          const SizedBox(height: 12),
-          _AvailableCard(count: available, onTap: onBrowseAvailable),
+          const Hairline(),
+          _AvailableRow(count: available, onTap: onBrowseAvailable),
           if (active != null) ...[
-            const SizedBox(height: 12),
+            const Hairline(),
+            const Eyebrow('Active job'),
+            const SizedBox(height: 10),
             _ActiveJobCard(
               active: active,
               onResume: () => onOpenJob(active['booking_id'] as String),
             ),
           ],
-          const SizedBox(height: 12),
+          const Hairline(),
           _PayoutSummary(
             balance: balance,
             onboarded: account.connectOnboarded,
-            weekEarnings: weekEarnings,
             onOpenPayouts: onOpenPayouts,
           ),
         ],
@@ -83,90 +73,40 @@ class MowerDashboard extends StatelessWidget {
   }
 }
 
-class _StatTile extends StatelessWidget {
-  const _StatTile({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 10),
-            Text(value,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w900, fontSize: 22, height: 1)),
-            const SizedBox(height: 2),
-            Text(label,
-                style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AvailableCard extends StatelessWidget {
-  const _AvailableCard({required this.count, required this.onTap});
+class _AvailableRow extends StatelessWidget {
+  const _AvailableRow({required this.count, required this.onTap});
   final int count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: cs.primaryContainer,
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.work_outline_rounded, color: cs.onPrimaryContainer),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      count == 0
-                          ? 'No jobs available right now'
-                          : '$count job${count == 1 ? '' : 's'} available now',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: cs.onPrimaryContainer),
-                    ),
-                    Text('Tap to browse and accept',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: cs.onPrimaryContainer.withValues(alpha: 0.8))),
-                  ],
-                ),
+    final text = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    count == 0
+                        ? 'No jobs available right now'
+                        : '$count job${count == 1 ? '' : 's'} available now',
+                    style: text.titleMedium,
+                  ),
+                  const SizedBox(height: 2),
+                  Text('Browse and accept', style: text.bodySmall),
+                ],
               ),
-              Icon(Icons.chevron_right_rounded, color: cs.onPrimaryContainer),
-            ],
-          ),
+            ),
+            if (count > 0) const StatusPill('Now', tone: PillTone.soft),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward,
+                size: 18, color: AppColors.textSecondary),
+          ],
         ),
       ),
     );
@@ -182,59 +122,45 @@ class _ActiveJobCard extends StatelessWidget {
       .where((s) => (s as String?)?.trim().isNotEmpty ?? false)
       .join(', ');
 
-  String get _statusLabel {
+  ({String label, PillTone tone}) get _status {
     switch (active['status'] as String? ?? '') {
       case 'accepted':
-        return 'Accepted — head over when ready';
+        return (label: 'Accepted', tone: PillTone.neutral);
       case 'en_route':
-        return 'On the way';
+        return (label: 'On the way', tone: PillTone.live);
       case 'arrived':
-        return 'Arrived';
+        return (label: 'Arrived', tone: PillTone.live);
       case 'in_progress':
-        return 'In progress';
+        return (label: 'In progress', tone: PillTone.live);
       default:
-        return 'Active';
+        return (label: 'Active', tone: PillTone.neutral);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bolt_rounded, color: Colors.orange.shade800, size: 20),
-              const SizedBox(width: 8),
-              Text('Job in progress',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Colors.orange.shade900)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(_address,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-          const SizedBox(height: 2),
-          Text(_statusLabel,
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onResume,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Resume job'),
+    final text = Theme.of(context).textTheme;
+    final status = _status;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatusPill(status.label,
+                tone: status.tone, dot: status.tone == PillTone.live),
+            const SizedBox(height: 12),
+            Text(_address, style: text.titleMedium),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onResume,
+                child: const Text('Resume job'),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -244,13 +170,11 @@ class _PayoutSummary extends StatelessWidget {
   const _PayoutSummary({
     required this.balance,
     required this.onboarded,
-    required this.weekEarnings,
     required this.onOpenPayouts,
   });
 
   final Map<String, dynamic>? balance;
   final bool onboarded;
-  final double weekEarnings;
   final VoidCallback onOpenPayouts;
 
   double _money(dynamic pence) => ((pence as num?)?.toDouble() ?? 0) / 100;
@@ -268,7 +192,7 @@ class _PayoutSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     final b = balance;
     final hasBalance = onboarded && b != null && b['exists'] == true;
 
@@ -291,66 +215,34 @@ class _PayoutSummary extends StatelessWidget {
 
     final available = hasBalance ? _money(b['available']) : 0.0;
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onOpenPayouts,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: onOpenPayouts,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(Icons.savings_rounded, size: 20, color: cs.primary),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text('Payouts',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 15)),
-                  ),
-                  Icon(Icons.chevron_right_rounded, color: Colors.grey.shade500),
-                ],
-              ),
-              const SizedBox(height: 10),
-              _row('This week', '£${weekEarnings.toStringAsFixed(2)}'),
-              if (hasBalance) ...[
-                const SizedBox(height: 6),
-                _row('Available now', '£${available.toStringAsFixed(2)}'),
-              ],
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(Icons.schedule_rounded,
-                      size: 16, color: Colors.grey.shade600),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(payoutLine,
-                        style: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade700)),
-                  ),
-                ],
-              ),
+              const Expanded(child: Eyebrow('Payouts')),
+              const Icon(Icons.arrow_forward,
+                  size: 16, color: AppColors.textSecondary),
             ],
           ),
-        ),
+          const SizedBox(height: 4),
+          if (hasBalance)
+            DataRow2(
+                label: 'Available now',
+                value: '£${available.toStringAsFixed(2)}'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.schedule_rounded,
+                  size: 15, color: AppColors.textSecondary),
+              const SizedBox(width: 6),
+              Expanded(child: Text(payoutLine, style: text.bodySmall)),
+            ],
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _row(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(color: Colors.grey.shade700)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-      ],
     );
   }
 }

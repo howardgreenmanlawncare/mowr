@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/theme/ui.dart';
 import '../data/mower_repository.dart';
+import '../domain/commission_status.dart';
 import '../domain/mower_account.dart';
 
 /// Payouts & Stripe. Lets the mower set up their Stripe Connect (Express)
@@ -26,6 +29,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
   bool _busy = false;
   MowerAccount? _account;
   Map<String, dynamic>? _balance;
+  CommissionStatus? _commission;
   String? _error;
 
   @override
@@ -50,10 +54,15 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
           balance = await repo.connectBalance();
         } catch (_) {}
       }
+      CommissionStatus? commission;
+      try {
+        commission = await repo.commissionStatus();
+      } catch (_) {}
       if (!mounted) return;
       setState(() {
         _account = acct;
         _balance = balance;
+        _commission = commission;
         _loading = false;
       });
     } catch (_) {
@@ -145,6 +154,10 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
                     ],
                     const SizedBox(height: 16),
                     _commissionCard(acct),
+                    if (_commission != null) ...[
+                      const SizedBox(height: 16),
+                      _tierCard(_commission!),
+                    ],
                     if (!acct.approved) ...[
                       const SizedBox(height: 16),
                       _pendingApprovalCard(),
@@ -169,13 +182,13 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
         Icon(Icons.account_balance_rounded, size: 36, color: cs.primary),
         const SizedBox(height: 12),
         const Text('Set up payouts',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
         const SizedBox(height: 6),
         Text(
           'To get paid for jobs you need a Stripe payout account. You’ll add '
           'your bank details and verify your identity — this is part of '
           'becoming a MOWR. It only takes a few minutes.',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -205,7 +218,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.orange.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.orange.shade200),
       ),
       child: Column(
@@ -218,7 +231,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
               const Expanded(
                 child: Text('Action needed',
                     style:
-                        TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
               ),
             ],
           ),
@@ -227,7 +240,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
             acct.requirement ??
                 'Stripe needs a bit more information to finish verifying your '
                     'payouts.',
-            style: TextStyle(color: Colors.grey.shade800),
+            style: TextStyle(color: AppColors.textPrimary),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -260,13 +273,13 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
         Icon(Icons.verified_rounded, size: 36, color: Colors.green.shade600),
         const SizedBox(height: 12),
         const Text('Payouts active',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
         const SizedBox(height: 6),
         Text(
           'Your Stripe account is set up. Money from completed jobs is paid to '
           'your bank automatically. Open your Stripe dashboard to see your '
           'balance and full payout history.',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -336,7 +349,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
         ),
         const SizedBox(height: 8),
         Text('Stripe pays this to your bank automatically.',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ],
     );
   }
@@ -345,10 +358,10 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey.shade700)),
+        Text(label, style: TextStyle(color: AppColors.textSecondary)),
         Text('£${amount.toStringAsFixed(2)}',
             style: TextStyle(
-                fontWeight: strong ? FontWeight.w900 : FontWeight.w700,
+                fontWeight: strong ? FontWeight.w700 : FontWeight.w700,
                 fontSize: strong ? 16 : 14)),
       ],
     );
@@ -382,9 +395,119 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
         Text(
           'You keep ${acct.payoutPct.toStringAsFixed(0)}% of each job. '
           'MOWR’s fee is ${acct.commissionPct.toStringAsFixed(0)}%.',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       ],
+    );
+  }
+
+  Widget _tierCard(CommissionStatus c) {
+    final cs = Theme.of(context).colorScheme;
+    final next = c.nextTier;
+    final rating = c.ratingAvg;
+    return _Card(
+      crossAxis: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.trending_up_rounded, size: 20, color: cs.primary),
+            const SizedBox(width: 8),
+            const Text('Lower your fee as you go',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        MiniStatRow(stats: [
+          ('${c.jobsCompleted}', 'Jobs done'),
+          (rating == null ? '—' : '${rating.toStringAsFixed(1)}★', 'Rating'),
+          ('${c.reviewCount}', 'Reviews'),
+        ]),
+        const SizedBox(height: 12),
+        if (c.currentTier != null)
+          _pill('${c.currentTier} tier · ${c.commissionPct.toStringAsFixed(0)}% fee',
+              cs.primary),
+        if (next == null) ...[
+          const SizedBox(height: 8),
+          Text(
+            c.currentTier == null
+                ? 'Complete jobs and earn good reviews to start lowering your fee.'
+                : "You're on the best tier — nicely done.",
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+        ] else ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: cs.primaryContainer.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Next: ${next.name} — ${next.commissionPct.toStringAsFixed(0)}% fee '
+                  '(you keep ${(100 - next.commissionPct).toStringAsFixed(0)}%)',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                _need('${next.minJobs} jobs completed', c.jobsCompleted,
+                    next.minJobs, next.jobsNeeded == 0,
+                    remaining: next.jobsNeeded == 0
+                        ? null
+                        : '${next.jobsNeeded} to go'),
+                _need('${next.minRating.toStringAsFixed(1)}★ average rating',
+                    null, null, next.ratingNeeded <= 0,
+                    remaining: next.ratingNeeded <= 0
+                        ? null
+                        : '+${next.ratingNeeded.toStringAsFixed(1)}★'),
+                _need('${next.minReviews} reviews', c.reviewCount,
+                    next.minReviews, next.reviewsNeeded == 0,
+                    remaining: next.reviewsNeeded == 0
+                        ? null
+                        : '${next.reviewsNeeded} more'),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _pill(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.w800, fontSize: 13)),
+    );
+  }
+
+  Widget _need(String label, int? have, int? target, bool met,
+      {String? remaining}) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(met ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+              size: 18,
+              color: met ? cs.primary : const Color(0xFFB6B6B0)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 13))),
+          if (!met && remaining != null)
+            Text(remaining,
+                style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w700)),
+        ],
+      ),
     );
   }
 
@@ -407,7 +530,7 @@ class _MowerPayoutsScreenState extends ConsumerState<MowerPayoutsScreen> {
         Text(
           'Your account is being reviewed. Once approved (and payouts are set '
           'up) you’ll be able to accept jobs.',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       ],
     );
@@ -426,8 +549,8 @@ class _Card extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(crossAxisAlignment: crossAxis, children: children),
     );

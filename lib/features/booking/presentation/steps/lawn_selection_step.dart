@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/lawn_area_model.dart';
@@ -84,7 +85,7 @@ class _LawnSelectionBody extends StatelessWidget {
         Text(
           'Which areas need mowing?',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
         ),
@@ -92,7 +93,7 @@ class _LawnSelectionBody extends StatelessWidget {
         Text(
           'Tap to include or exclude a lawn area from this booking.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.textSecondary,
               ),
         ),
         const SizedBox(height: 20),
@@ -136,9 +137,9 @@ class _LawnCard extends StatelessWidget {
       color: selected ? cs.primaryContainer.withValues(alpha: 0.5) : Colors.white,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: selected ? cs.primary : Colors.grey.shade200,
+          color: selected ? cs.primary : AppColors.border,
           width: selected ? 2 : 1,
         ),
       ),
@@ -169,7 +170,7 @@ class _LawnCard extends StatelessWidget {
                           '  ·  '
                           '${lawn.perimeter.toStringAsFixed(1)} m perimeter',
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
                         ),
@@ -187,7 +188,7 @@ class _LawnCard extends StatelessWidget {
                         : Icon(
                             Icons.radio_button_unchecked_rounded,
                             key: const ValueKey(false),
-                            color: Colors.grey.shade400,
+                            color: Color(0xFFB6B6AE),
                           ),
                   ),
                 ],

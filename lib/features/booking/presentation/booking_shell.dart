@@ -59,7 +59,6 @@ class BookingShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final isFirst = stepIndex == 0; // covers both kStepProperties and kStepPostcode
 
     Widget? resolvedBottom;
@@ -87,33 +86,7 @@ class BookingShell extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => context.pop(),
               ),
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'MOWR',
-              style: TextStyle(
-                color: cs.primary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.4,
-                fontSize: 14,
-              ),
-            ),
-            Text(
-              'Book a lawn mow',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              backgroundColor: cs.primaryContainer,
-              child: Icon(Icons.grass_rounded, color: cs.onPrimaryContainer),
-            ),
-          ),
-        ],
+        title: const Text('Book a mow'),
       ),
       bottomNavigationBar: resolvedBottom,
       body: SafeArea(
@@ -162,18 +135,16 @@ class _BookingProgressBar extends StatelessWidget {
             Text(label, style: Theme.of(context).textTheme.labelLarge),
             Text(
               '${displayStep + 1} of $kBookingStepCount',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
         const SizedBox(height: 8),
         LinearProgressIndicator(
           value: progress,
-          minHeight: 8,
+          minHeight: 6,
           borderRadius: BorderRadius.circular(999),
-          backgroundColor: Colors.grey.shade200,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
       ],
     );

@@ -59,6 +59,17 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
     );
   }
 
+  /// Replaces a guest-drawn/entered lawn in place (same id). Used to add a
+  /// perimeter to a manually-entered lawn on the edging step so it can be
+  /// edged. Only affects [draftLawns]; saved-property lawns are read-only here.
+  void updateDraftLawn(LawnArea updated) {
+    state = state.copyWith(
+      draftLawns: List.unmodifiable(
+        state.draftLawns.map((l) => l.id == updated.id ? updated : l),
+      ),
+    );
+  }
+
   void toggleEdging(String lawnId) {
     final current = Set<String>.from(state.edgedLawnIds);
     if (current.contains(lawnId)) {
@@ -215,6 +226,9 @@ class BookingDraftNotifier extends Notifier<BookingDraft> {
 
   void setTimeWindow(TimeWindow window) =>
       state = state.copyWith(timeWindow: window);
+
+  void setRecurrence(RecurrenceInterval recurrence) =>
+      state = state.copyWith(recurrence: recurrence);
 
   void setAccessProvided(bool provided) =>
       state = state.copyWith(accessProvided: provided);

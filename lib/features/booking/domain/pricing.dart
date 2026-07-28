@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'booking_draft.dart' show GrassLength;
+import 'discount.dart';
 import 'lawn_area_model.dart';
 
 /// The tunable inputs to the pricing formula. Every value here is a "field" the
@@ -105,6 +106,8 @@ class BookingQuote {
     required this.edgeLines,
     required this.edgeMinimum,
     required this.currencySymbol,
+    this.discountPercent = 0,
+    this.discountLabel,
   });
 
   final double mowTurnUp;
@@ -116,6 +119,13 @@ class BookingQuote {
   final double edgeMinimum;
 
   final String currencySymbol;
+
+  /// Percentage off the subtotal from the best applicable discount rule (0 =
+  /// none). Applied to the whole booking.
+  final double discountPercent;
+
+  /// Name of the applied discount, for the price breakdown.
+  final String? discountLabel;
 
   bool get hasMowing => mowLines.isNotEmpty;
   bool get hasEdging => edgeLines.isNotEmpty;
@@ -134,7 +144,15 @@ class BookingQuote {
   bool get mowMinimumApplied => hasMowing && _mowRaw < mowMinimum;
   bool get edgeMinimumApplied => hasEdging && _edgeRaw < edgeMinimum;
 
-  double get total => mowingSubtotal + edgingSubtotal;
+  /// Price before any discount.
+  double get subtotal => mowingSubtotal + edgingSubtotal;
+
+  bool get hasDiscount => discountPercent > 0;
+
+  double get discountAmount => subtotal * discountPercent / 100;
+
+  /// What the customer pays, after discount.
+  double get total => subtotal - discountAmount;
 
   String money(double value) => '$currencySymbol${value.toStringAsFixed(2)}';
 }
@@ -142,9 +160,13 @@ class BookingQuote {
 /// The single place all price calculation happens (see CLAUDE.md:
 /// "Pricing is central"). Nothing else should compute prices.
 class PricingEngine {
-  const PricingEngine(this.rules);
+  const PricingEngine(this.rules, {this.discountRules = const []});
 
   final PricingRules rules;
+
+  /// Admin-modelled loyalty/recurrence discounts. The best matching one is
+  /// applied to a quote when a [DiscountContext] is supplied.
+  final List<DiscountRule> discountRules;
 
   /// One lawn's variable mowing amount (rate × area × height multiplier).
   double mowVariableFor(LawnArea lawn, GrassLength height) =>
@@ -158,6 +180,7 @@ class PricingEngine {
     required List<LawnArea> lawns,
     required Map<String, GrassLength> heights,
     required Set<String> edgedLawnIds,
+    DiscountContext? discount,
   }) {
     final mowLines = <PriceLine>[];
     final edgeLines = <PriceLine>[];
@@ -182,6 +205,9 @@ class PricingEngine {
       }
     }
 
+    final applied =
+        discount == null ? null : bestDiscount(discountRules, discount);
+
     return BookingQuote(
       mowTurnUp: rules.mowTurnUpCharge,
       mowLines: mowLines,
@@ -190,6 +216,8 @@ class PricingEngine {
       edgeLines: edgeLines,
       edgeMinimum: rules.edgeMinimumCharge,
       currencySymbol: rules.currencySymbol,
+      discountPercent: applied?.percentOff ?? 0,
+      discountLabel: applied?.name,
     );
   }
 }

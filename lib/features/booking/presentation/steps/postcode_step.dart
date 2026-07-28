@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,9 +55,15 @@ class _PostcodeStepScreenState extends ConsumerState<PostcodeStepScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e is PostcodeNotFoundException
-            ? e.toString()
-            : "Couldn't look up that postcode. Check it and try again.";
+        // A provider/key failure is ours, not the customer's — say so rather
+        // than telling them to re-check a postcode that was fine.
+        _error = switch (e) {
+          PostcodeNotFoundException() => e.toString(),
+          AddressLookupException() =>
+            "Address lookup is unavailable right now. Enter your address "
+                "manually below.",
+          _ => "Couldn't look up that postcode. Check it and try again.",
+        };
         _loading = false;
       });
     }
@@ -108,13 +115,13 @@ class _PostcodeStepScreenState extends ConsumerState<PostcodeStepScreen> {
         Text(
           "What's the address?",
           style: theme.textTheme.headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+              ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
         ),
         const SizedBox(height: 4),
         Text(
           'Enter your postcode and pick your address from the list.',
           style:
-              theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
+              theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 20),
         Row(
@@ -228,7 +235,7 @@ class _AddressCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.border),
       ),
       child: InkWell(
         onTap: onTap,
@@ -246,7 +253,7 @@ class _AddressCard extends StatelessWidget {
                       fontWeight: FontWeight.w600, fontSize: 14),
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
+              Icon(Icons.chevron_right_rounded, color: Color(0xFFB6B6AE)),
             ],
           ),
         ),

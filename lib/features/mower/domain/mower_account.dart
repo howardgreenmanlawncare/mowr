@@ -8,6 +8,8 @@ class MowerAccount {
     this.connectId,
     this.actionRequired = false,
     this.requirement,
+    this.phoneVerified = false,
+    this.autoAllocate = false,
   });
 
   /// Admin has vetted this mower.
@@ -15,6 +17,10 @@ class MowerAccount {
 
   /// Stripe Connect onboarding finished (payouts enabled).
   final bool connectOnboarded;
+
+  /// Mobile number confirmed by SMS one-time code. Doubles as the dedup key —
+  /// Supabase enforces one confirmed phone per account.
+  final bool phoneVerified;
 
   /// Percent MOWR keeps on this mower's jobs (per-mower, else the default).
   final double commissionPct;
@@ -28,11 +34,27 @@ class MowerAccount {
   /// Plain-English description of what Stripe needs, when [actionRequired].
   final String? requirement;
 
-  /// Fully live: can see + accept jobs.
-  bool get canWork => approved && connectOnboarded;
+  /// Opted into night-before auto-allocation — the app plans their day and
+  /// assigns jobs automatically, rather than them picking from Available.
+  final bool autoAllocate;
+
+  /// Fully live: can see + accept jobs. Mirrors is_approved_mower() on the
+  /// server — all three gates must pass, so keep them in step.
+  bool get canWork => approved && connectOnboarded && phoneVerified;
 
   /// What the mower keeps, as a percentage.
   double get payoutPct => 100 - commissionPct;
+
+  MowerAccount copyWith({bool? autoAllocate}) => MowerAccount(
+        approved: approved,
+        connectOnboarded: connectOnboarded,
+        commissionPct: commissionPct,
+        connectId: connectId,
+        actionRequired: actionRequired,
+        requirement: requirement,
+        phoneVerified: phoneVerified,
+        autoAllocate: autoAllocate ?? this.autoAllocate,
+      );
 
   factory MowerAccount.fromJson(Map<String, dynamic> json) => MowerAccount(
         approved: json['approved'] as bool? ?? false,
@@ -41,5 +63,7 @@ class MowerAccount {
         connectId: json['connect_id'] as String?,
         actionRequired: json['connect_action_required'] as bool? ?? false,
         requirement: json['connect_requirement'] as String?,
+        phoneVerified: json['phone_verified'] as bool? ?? false,
+        autoAllocate: json['auto_allocate'] as bool? ?? false,
       );
 }

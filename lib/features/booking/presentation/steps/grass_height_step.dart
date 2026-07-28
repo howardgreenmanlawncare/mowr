@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/booking_draft.dart';
@@ -77,7 +78,7 @@ class _GrassHeightBody extends StatelessWidget {
         Text(
           'How long is the grass?',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
         ),
@@ -85,7 +86,7 @@ class _GrassHeightBody extends StatelessWidget {
         Text(
           "Each lawn is preset to Medium — adjust any that differ.",
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.textSecondary,
               ),
         ),
         const SizedBox(height: 16),
@@ -115,12 +116,12 @@ class _ExampleImagesCard extends StatelessWidget {
     return Card(
       elevation: 0,
       color: cs.surfaceContainerLow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         collapsedShape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Icon(Icons.photo_library_outlined, color: cs.primary),
         title: const Text(
           'See height examples',
@@ -215,8 +216,8 @@ class _LawnHeightCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -225,12 +226,15 @@ class _LawnHeightCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: cs.primaryContainer,
-                  child: Icon(
-                    Icons.grass_rounded,
-                    color: cs.onPrimaryContainer,
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: Icon(Icons.grass_rounded,
+                      size: 20, color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(width: 12),
                 Text(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/map/map_load_state.dart';
 import '../../../core/map/satellite_tiles.dart';
 import '../../booking/domain/geo_point.dart';
 import '../../booking/domain/lawn_geometry.dart';
@@ -28,6 +30,7 @@ class MowerLawnDrawScreen extends StatefulWidget {
 
 class _MowerLawnDrawScreenState extends State<MowerLawnDrawScreen> {
   final _mapController = MapController();
+  final _mapLoad = MapLoadState();
   final List<LatLng> _points = [];
   late final LatLng _initialCentre;
   late final double _initialZoom;
@@ -41,6 +44,7 @@ class _MowerLawnDrawScreenState extends State<MowerLawnDrawScreen> {
 
   @override
   void dispose() {
+    _mapLoad.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -81,7 +85,7 @@ class _MowerLawnDrawScreenState extends State<MowerLawnDrawScreen> {
               ),
             ),
             children: [
-              satelliteTileLayer(),
+              satelliteTileLayer(loadState: _mapLoad),
               if (_closed)
                 PolygonLayer(
                   polygons: [
@@ -154,6 +158,14 @@ class _MowerLawnDrawScreenState extends State<MowerLawnDrawScreen> {
             bottom: 8,
             child: _AttributionChip(text: satelliteAttribution()),
           ),
+          // Last child = topmost. Matters most here: the mower is re-measuring
+          // on site, often on patchy mobile data.
+          Positioned.fill(
+            child: MapLoadingOverlay(
+              state: _mapLoad,
+              message: 'Loading satellite imagery…',
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -212,9 +224,9 @@ class _MeasureBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('${area.toStringAsFixed(0)} m²',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
           Text('${perimeter.toStringAsFixed(1)} m edge',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -240,7 +252,7 @@ class _RoundButton extends StatelessWidget {
           width: 46,
           height: 46,
           child: Icon(icon,
-              color: onTap == null ? Colors.grey.shade400 : cs.primary),
+              color: onTap == null ? Color(0xFFB6B6AE) : cs.primary),
         ),
       ),
     );

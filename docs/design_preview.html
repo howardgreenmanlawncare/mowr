@@ -1,0 +1,669 @@
+<title>MOWR — Swiss monochrome direction</title>
+<style>
+  :root{
+    --paper:#F5F5F2; --surface:#FFFFFF; --ink:#121211; --graphite:#6E6E69;
+    --hairline:#E3E3DE; --hairline-strong:#111211;
+    --green:#2E6A43; --green-ink:#1F4C30; --green-pale:#E9F0EA;
+    --amber:#C98A2B; --red:#C0473E;
+    --r:5px;
+    --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#1b1b1a; color:#e8e8e4; font-family:var(--f);
+    -webkit-font-smoothing:antialiased; padding:40px 20px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  .lede{max-width:640px;margin-bottom:14px}
+  .lede .ey{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8f8f88;margin-bottom:10px}
+  .lede h1{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+  .lede p{color:#a6a6a0;font-size:14px;line-height:1.5;margin-top:10px}
+
+  /* system legend */
+  .legend{display:flex;flex-wrap:wrap;gap:28px;margin:26px 0 40px;padding:20px 0;border-top:1px solid #34342f;border-bottom:1px solid #34342f}
+  .swatches{display:flex;gap:0}
+  .sw{width:46px;height:46px;position:relative}
+  .sw span{position:absolute;bottom:-16px;left:0;font-size:9px;color:#8f8f88;letter-spacing:.04em}
+  .specimen div{line-height:1;color:#e8e8e4}
+  .s1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .s2{font-size:15px;font-weight:400;color:#bcbcb6;margin-top:8px}
+  .s3{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8f8f88;margin-top:10px}
+
+  .grid{display:flex;flex-wrap:wrap;gap:34px;justify-content:center}
+  .col{width:340px}
+  .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8f8f88;margin:14px 2px 0}
+
+  /* device */
+  .phone{background:#000;border-radius:34px;padding:9px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;height:720px;display:flex;flex-direction:column;position:relative}
+  .body{flex:1;overflow:hidden;padding:20px 20px 0}
+  .status{height:26px}
+
+  /* app primitives */
+  .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--graphite)}
+  .h-page{font-size:30px;font-weight:700;letter-spacing:-.022em;line-height:1.04;color:var(--ink);text-wrap:balance}
+  .h-sec{font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .muted{color:var(--graphite)}
+  .num{font-variant-numeric:tabular-nums}
+  .rule{height:1px;background:var(--hairline);margin:16px 0}
+  .rule.tight{margin:12px 0}
+
+  .appbar{display:flex;align-items:baseline;justify-content:space-between;padding:6px 20px 2px}
+  .appbar .t{font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .appbar .r{font-size:12px;color:var(--graphite);letter-spacing:.02em}
+
+  .btn{display:block;width:100%;border:none;border-radius:var(--r);height:52px;font-family:var(--f);
+    font-size:15px;font-weight:600;letter-spacing:-.005em;cursor:pointer}
+  .btn.pri{background:var(--green);color:#fff}
+  .btn.sec{background:transparent;color:var(--ink);border:1px solid var(--hairline)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid var(--hairline);color:var(--graphite)}
+  .pill.live{background:var(--green);border-color:var(--green);color:#fff}
+  .pill.soft{background:var(--green-pale);border-color:transparent;color:var(--green-ink)}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r);padding:18px}
+
+  /* rows */
+  .row{display:flex;justify-content:space-between;align-items:center;padding:11px 0}
+  .row .k{font-size:14px;color:var(--ink)}
+  .row .k .sub{display:block;font-size:12px;color:var(--graphite);margin-top:2px}
+  .row .v{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* stat tiles */
+  .stats{display:flex;gap:10px}
+  .stat{flex:1;min-width:0;border:1px solid var(--hairline);border-radius:var(--r);padding:14px 12px 13px;background:var(--surface)}
+  .stat .n{font-size:20px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+  .stat .l{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--graphite);margin-top:7px}
+
+  /* bottom nav */
+  .nav{display:flex;border-top:1px solid var(--hairline);background:var(--surface)}
+  .nav a{flex:1;text-align:center;padding:10px 0 14px;color:var(--graphite);text-decoration:none}
+  .nav a.on{color:var(--green)}
+  .nav svg{display:block;margin:0 auto 5px;width:21px;height:21px}
+  .nav span{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
+
+  .steps .step{display:flex;gap:14px;align-items:baseline;padding:14px 0}
+  .steps .idx{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--green);font-variant-numeric:tabular-nums;width:22px}
+  .steps .st-t{font-size:15px;font-weight:600;color:var(--ink)}
+  .steps .st-s{font-size:13px;color:var(--graphite);margin-top:2px}
+
+  .price{font-size:44px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1}
+
+  /* Temp map: faux satellite/plan — roads, parcels, greenery, the lawn + a pin.
+     Stands in for the real flutter_map satellite view. */
+  .map{height:132px;border:1px solid var(--hairline);border-radius:var(--r);
+    position:relative;overflow:hidden;background-color:#e2e7dc;
+    background-image:
+      linear-gradient(90deg, transparent 0 57%, #eef1ea 57% 65%, transparent 65%),
+      linear-gradient(0deg, transparent 0 39%, #eef1ea 39% 49%, transparent 49%)}
+  .map::before{content:"";position:absolute;inset:0;background:
+    linear-gradient(#cdd5c6 0 0) 10px 12px/40px 22px no-repeat,
+    linear-gradient(#d4dccd 0 0) 10px 42px/26px 20px no-repeat,
+    linear-gradient(#cdd5c6 0 0) 44px 44px/22px 18px no-repeat,
+    radial-gradient(circle at 84% 82%, #cfe0c4 0 34px, transparent 35px),
+    radial-gradient(circle at 20% 88%, #cfe0c4 0 20px, transparent 21px)}
+  .map .plot{position:absolute;left:120px;top:30px;width:120px;height:56px;
+    background:rgba(46,106,67,.20);border:1.6px solid var(--green);border-radius:3px;z-index:1}
+  .map .plot::after{content:"";position:absolute;left:50%;top:-10px;transform:translateX(-50%) rotate(45deg);
+    width:12px;height:12px;background:var(--green);border:2px solid #fff;border-radius:50% 50% 50% 0}
+
+  .check{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:var(--ink)}
+  .check .ic{width:17px;height:17px;flex:0 0 17px}
+  .check.done{color:var(--ink)}
+  .check.todo{color:var(--graphite)}
+  .check .rem{margin-left:auto;font-size:11px;font-weight:700;color:var(--graphite);font-variant-numeric:tabular-nums}
+  .bar{height:5px;border-radius:3px;background:var(--hairline);overflow:hidden;margin:12px 0 2px}
+  .bar i{display:block;height:100%;background:var(--green);width:40%}
+
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .mk{width:22px;height:22px;background:var(--ink);border-radius:3px;position:relative}
+  .brand .mk::after{content:"";position:absolute;right:4px;bottom:4px;width:6px;height:6px;background:var(--green)}
+  .brand .wm{font-size:15px;font-weight:700;letter-spacing:.22em}
+  .links a{display:block;font-size:14px;color:var(--ink);text-decoration:none;padding:9px 0;border-bottom:1px solid var(--hairline)}
+  .links a .ar{float:right;color:var(--graphite)}
+
+  .sect{width:100%;margin:24px 2px 4px;padding-top:26px;border-top:1px solid #34342f}
+  .sect h2{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#c8c8c2;font-weight:700}
+  .seg{display:flex;border:1px solid var(--hairline);border-radius:var(--r);overflow:hidden}
+  .seg div{flex:1;text-align:center;padding:9px 0;font-size:12px;font-weight:600;color:var(--graphite)}
+  .seg div.on{background:var(--ink);color:#fff}
+  .fchips{display:flex;gap:8px;flex-wrap:wrap}
+  .fchip{font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--hairline);color:var(--graphite)}
+  .fchip.on{background:var(--green);border-color:var(--green);color:#fff}
+  .opt{display:flex;align-items:center;gap:12px;border:1px solid var(--hairline);border-radius:var(--r);padding:14px;margin-bottom:10px}
+  .opt.on{border-color:var(--green);background:var(--green-pale)}
+  .opt .oi{width:20px;height:20px;flex:0 0 20px}
+  .opt .ot{font-size:14px;font-weight:600;color:var(--ink)}
+  .opt .os{font-size:12px;color:var(--graphite);margin-top:2px}
+  .opt .ov{margin-left:auto;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;color:var(--ink)}
+  .lrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--hairline)}
+  .lrow .lt{font-size:14px;color:var(--ink);font-weight:500}
+  .lrow .ls{font-size:12px;color:var(--graphite);margin-top:2px}
+  .lrow .lv{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;color:var(--ink)}
+  .lrow .chev{color:#c2c2ba;margin-left:8px}
+  .msg{max-width:80%;padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.42;margin-bottom:8px}
+  .msg.bot{background:var(--surface);border:1px solid var(--hairline);color:var(--ink);border-top-left-radius:3px}
+  .msg.me{background:var(--green);color:#fff;margin-left:auto;border-top-right-radius:3px}
+  .composer{display:flex;gap:8px;align-items:center;padding:12px 16px;border-top:1px solid var(--hairline);background:var(--surface)}
+  .composer .inp{flex:1;border:1px solid var(--hairline);border-radius:var(--r);padding:11px 12px;font-size:13px;color:var(--graphite)}
+  .composer .send{width:40px;height:40px;border-radius:var(--r);background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 40px}
+  .kpi{font-size:38px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1}
+  .two{display:flex;gap:10px}
+  .two>*{flex:1}
+
+  /* dashboard-number concept comparison */
+  .concepts{display:flex;flex-wrap:wrap;gap:20px;margin:14px 0 8px}
+  .concept{width:300px;background:var(--paper);border-radius:8px;padding:18px 18px 20px}
+  .concept h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a84;font-weight:700;margin-bottom:6px}
+  .concept .rec{font-size:11px;color:var(--green);font-weight:700;margin-bottom:14px}
+  .ldg{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid var(--hairline)}
+  .ldg:first-of-type{border-top:none;padding-top:2px}
+  .ldg .l{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--graphite)}
+  .ldg .v{font-size:27px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1}
+  .hero .hv{font-size:42px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1}
+  .hero .he{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--graphite);margin-bottom:8px}
+  .hero .sub{display:flex;gap:26px;margin-top:16px;padding-top:14px;border-top:1px solid var(--hairline)}
+  .hero .sub .n{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .hero .sub .sl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--graphite);margin-top:3px}
+  .twoup{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .twoup .stat:last-child{grid-column:1 / -1}
+
+  /* PDF export (Edge headless --print-to-pdf): clean white pages, no cut phones */
+  @media print{
+    @page{size:A4;margin:10mm}
+    body{background:#fff;color:#111;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .lede .ey{color:#666}
+    .lede h1{color:#111}
+    .lede p{color:#555}
+    .legend{border-color:#ddd}
+    .specimen div,.s1{color:#111}
+    .s2,.s3,.sw span{color:#666}
+    .sect{border-color:#ddd}
+    .sect h2{color:#111}
+    .cap{color:#555}
+    .grid{gap:18px;justify-content:flex-start}
+    .col{break-inside:avoid;page-break-inside:avoid}
+    .sect{break-inside:avoid;break-before:page}
+    .phone{box-shadow:none}
+  }
+</style>
+
+<div class="wrap">
+  <div class="lede">
+    <div class="ey">MOWR · Design direction</div>
+    <h1>Swiss monochrome</h1>
+    <p>Ink on paper, one signal green, a strict flush-left grid and hairline rules instead of boxes. Green appears only on the primary action and live states. Four screens for sign-off before the app-wide sweep.</p>
+  </div>
+
+  <div class="legend">
+    <div>
+      <div class="swatches">
+        <div class="sw" style="background:#F5F5F2"><span>Paper</span></div>
+        <div class="sw" style="background:#FFFFFF"><span>Surface</span></div>
+        <div class="sw" style="background:#121211"><span>Ink</span></div>
+        <div class="sw" style="background:#6E6E69"><span>Graphite</span></div>
+        <div class="sw" style="background:#E3E3DE"><span>Hairline</span></div>
+        <div class="sw" style="background:#2E6A43"><span>Green</span></div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="s1">Lawn mowing, on demand</div>
+      <div class="s2">Helvetica Neue · size + weight hierarchy</div>
+      <div class="s3">Uppercase label · tabular 1234567890</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 · WELCOME -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="body">
+          <div class="brand"><div class="mk"></div><div class="wm">MOWR</div></div>
+          <div style="height:34px"></div>
+          <div class="eyebrow">Vetted local mowers</div>
+          <h1 class="h-page" style="margin-top:12px">Lawn mowing,<br>on demand.</h1>
+          <p class="muted" style="font-size:14px;line-height:1.5;margin-top:12px">Draw your lawn, get an instant price, and book a vetted local mower. Pay only when it’s done.</p>
+          <div class="rule"></div>
+          <div class="steps">
+            <div class="step"><div class="idx">01</div><div><div class="st-t">Map your lawn</div><div class="st-s">Trace it on the map — measured exactly.</div></div></div>
+            <div class="step" style="border-top:1px solid var(--hairline)"><div class="idx">02</div><div><div class="st-t">Get an instant price</div><div class="st-s">Clear and upfront. No haggling.</div></div></div>
+            <div class="step" style="border-top:1px solid var(--hairline)"><div class="idx">03</div><div><div class="st-t">A local mower turns up</div><div class="st-s">Pay only once it’s done.</div></div></div>
+          </div>
+          <div style="height:14px"></div>
+          <button class="btn pri">See my price</button>
+        </div>
+        <div class="nav">
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9h16M9 3v4M15 3v4"/></svg><span>Bookings</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18"/></svg><span>Payment</span></a>
+        </div>
+      </div></div>
+      <div class="cap">01 · Front door</div>
+    </div>
+
+    <!-- 2 · REVIEW & PRICE -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Review</div><div class="r num">9 / 11</div></div>
+        <div class="body">
+          <div class="map"><div class="plot"></div></div>
+          <div style="height:16px"></div>
+          <div class="eyebrow">Property</div>
+          <div class="h-sec" style="margin-top:6px">14 Rectory Road</div>
+          <div class="muted" style="font-size:13px;margin-top:2px">Colchester · CO6 3RR</div>
+          <div class="rule"></div>
+          <div class="eyebrow">Lawns &amp; service</div>
+          <div class="row"><div class="k">Front lawn<span class="sub">Mow · standard height</span></div><div class="v num">84 m²</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Back lawn<span class="sub">Mow + edging</span></div><div class="v num">152 m²</div></div>
+          <div class="rule"></div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div><div class="eyebrow">Every 2 weeks</div><div class="price" style="margin-top:8px">£68.00</div></div>
+            <div class="pill soft">3rd mow 20% off</div>
+          </div>
+        </div>
+        <div style="padding:14px 20px 20px">
+          <button class="btn pri">Confirm &amp; pay</button>
+        </div>
+      </div></div>
+      <div class="cap">02 · Review &amp; price</div>
+    </div>
+
+    <!-- 3 · MOWER HOME -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Today</div><div class="r">Fri 25 Jul</div></div>
+        <div class="body">
+          <div class="hero">
+            <div class="he">Earned today</div>
+            <div class="hv">£142.40</div>
+            <div class="sub">
+              <div><div class="n">4</div><div class="sl">Jobs today</div></div>
+              <div><div class="n">£610</div><div class="sl">This week</div></div>
+            </div>
+          </div>
+          <div class="rule"></div>
+          <div class="row" style="padding-top:2px"><div class="k">Auto-plan my day<span class="sub">We assign &amp; route tomorrow’s jobs</span></div>
+            <div class="v"><span style="display:inline-block;width:40px;height:24px;background:var(--green);border-radius:999px;position:relative"><span style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:#fff;border-radius:50%"></span></span></div></div>
+          <div class="rule tight"></div>
+          <div class="eyebrow">Active job</div>
+          <div class="card" style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="pill live"><span class="dot"></span>In progress</span><span class="muted num" style="font-size:12px">09:40–10:20</span></div>
+            <div class="h-sec" style="margin-top:12px">6 Maltings Lane</div>
+            <div class="muted" style="font-size:13px;margin-top:2px">Colchester · 236 m² · mow + edging</div>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn sec" style="height:44px">Navigate</button>
+              <button class="btn pri" style="height:44px">Complete</button>
+            </div>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Next</div>
+          <div class="row" style="padding-top:8px"><div class="k">Church Road<span class="sub">10:45 · 120 m²</span></div><div class="v num">£38</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Queen Street<span class="sub">11:30 · 90 m²</span></div><div class="v num">£31</div></div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v16M4 12h16"/></svg><span>Jobs</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7"/><path d="M4 20h16"/></svg><span>Earnings</span></a>
+        </div>
+      </div></div>
+      <div class="cap">03 · Mower home</div>
+    </div>
+
+    <!-- 4 · COMMISSION TIER -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Payouts</div><div class="r">Active</div></div>
+        <div class="body">
+          <div class="eyebrow">Your share</div>
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-top:8px">
+            <div class="price">85%</div><div class="muted" style="font-size:13px;padding-bottom:6px">you keep · 15% MOWR fee</div>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Lower your fee as you go</div>
+          <div class="hero"><div class="sub" style="border-top:none;padding-top:0;margin-top:14px">
+            <div><div class="n">12</div><div class="sl">Jobs done</div></div>
+            <div><div class="n">4.2★</div><div class="sl">Rating</div></div>
+            <div><div class="n">6</div><div class="sl">Reviews</div></div>
+          </div></div>
+          <div style="margin-top:14px"><span class="pill soft">Bronze tier · 13% fee</span></div>
+          <div class="card" style="margin-top:14px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <div class="h-sec">Next: Silver</div><div class="num" style="font-weight:700">11% fee</div>
+            </div>
+            <div class="bar"><i></i></div>
+            <div class="muted" style="font-size:11px;margin-bottom:8px">You keep 89% at this tier</div>
+            <div class="check done"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>30 jobs completed <span class="rem">18 to go</span></div>
+            <div class="check todo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#B6B6B0" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>4.3★ average rating <span class="rem">+0.1★</span></div>
+            <div class="check todo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#B6B6B0" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg>15 reviews <span class="rem">9 more</span></div>
+          </div>
+          <div style="height:14px"></div>
+          <button class="btn sec">Open Stripe dashboard</button>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v16M4 12h16"/></svg><span>Jobs</span></a>
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7"/><path d="M4 20h16"/></svg><span>Earnings</span></a>
+        </div>
+      </div></div>
+      <div class="cap">04 · Commission tier</div>
+    </div>
+
+    <div class="sect"><h2>Customer · Booking flow</h2></div>
+
+    <!-- 5 · GRASS HEIGHT -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Grass height</div><div class="r num">5 / 11</div></div>
+        <div class="body">
+          <div class="eyebrow">Back lawn · 152 m²</div>
+          <h1 class="h-page" style="font-size:24px;margin-top:10px">How long is<br>the grass?</h1>
+          <p class="muted" style="font-size:13px;margin-top:8px">Longer grass takes more time, so it affects the price.</p>
+          <div style="height:18px"></div>
+          <div class="opt"><svg class="oi" viewBox="0 0 24 24" fill="none" stroke="#B6B6B0" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><div><div class="ot">Short</div><div class="os">Regularly maintained · ×1.0</div></div></div>
+          <div class="opt on"><svg class="oi" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg><div><div class="ot">Medium</div><div class="os">A few weeks’ growth · ×1.6</div></div><div class="ov">+£14</div></div>
+          <div class="opt"><svg class="oi" viewBox="0 0 24 24" fill="none" stroke="#B6B6B0" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><div><div class="ot">Long / overgrown</div><div class="os">Hasn’t been cut in a while · ×2.0</div></div></div>
+        </div>
+        <div style="padding:14px 20px 20px"><button class="btn pri">Continue</button></div>
+      </div></div>
+      <div class="cap">05 · Selection step</div>
+    </div>
+
+    <!-- 6 · SCHEDULE -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Schedule</div><div class="r num">7 / 11</div></div>
+        <div class="body">
+          <div class="eyebrow">How often?</div>
+          <div class="fchips" style="margin-top:12px">
+            <span class="fchip">One-off</span><span class="fchip">Weekly</span>
+            <span class="fchip on">Every 2 wks</span><span class="fchip">Every 3 wks</span>
+            <span class="fchip">Custom…</span>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Preferred day</div>
+          <div class="fchips" style="margin-top:12px">
+            <span class="fchip">Mon</span><span class="fchip on">Tue</span><span class="fchip">Wed</span>
+            <span class="fchip">Thu</span><span class="fchip">Fri</span><span class="fchip">Sat</span><span class="fchip">Sun</span>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Time window</div>
+          <div style="height:12px"></div>
+          <div class="opt on"><svg class="oi" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg><div><div class="ot">Morning</div><div class="os">8am – 12pm</div></div></div>
+          <div class="opt"><svg class="oi" viewBox="0 0 24 24" fill="none" stroke="#B6B6B0" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><div><div class="ot">Afternoon</div><div class="os">12pm – 5pm</div></div></div>
+          <div class="pill soft" style="margin-top:6px">Recur &amp; your 3rd mow is 20% off</div>
+        </div>
+        <div style="padding:14px 20px 20px"><button class="btn pri">Continue</button></div>
+      </div></div>
+      <div class="cap">06 · Schedule</div>
+    </div>
+
+    <!-- 7 · CONFIRMATION -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="body" style="padding-top:40px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" style="width:44px;height:44px"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+          <h1 class="h-page" style="margin-top:20px">You’re booked.</h1>
+          <p class="muted" style="font-size:14px;margin-top:10px;line-height:1.5">A vetted local mower will be assigned for your slot. We’ll only charge your card once the job is done.</p>
+          <div class="rule"></div>
+          <div class="eyebrow">Booking</div>
+          <div class="row"><div class="k">When</div><div class="v">Tue 29 Jul · Morning</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Where</div><div class="v">14 Rectory Road</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Price</div><div class="v num">£68.00</div></div>
+          <div class="rule"></div>
+          <button class="btn pri">Track my booking</button>
+          <div style="height:10px"></div>
+          <button class="btn sec">Back to home</button>
+        </div>
+      </div></div>
+      <div class="cap">07 · Confirmation</div>
+    </div>
+
+    <div class="sect"><h2>Mower</h2></div>
+
+    <!-- 8 · JOBS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Jobs</div><div class="r">Route ▸</div></div>
+        <div class="body">
+          <div class="seg"><div class="on">Available</div><div>Mine</div><div>History</div></div>
+          <div style="height:16px"></div>
+          <div class="eyebrow">4 jobs near you</div>
+          <div style="height:6px"></div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">6 Maltings Lane</div><div class="ls">Tue AM · 236 m² · mow + edging</div></div><div class="lv">£72<div class="pill soft" style="margin-top:4px">Fits your day</div></div></div>
+          <div class="lrow"><div><div class="lt">Church Road</div><div class="ls">Tue AM · 120 m² · mow</div></div><div class="lv">£38</div></div>
+          <div class="lrow"><div><div class="lt">Queen Street</div><div class="ls">Wed PM · 90 m² · mow</div></div><div class="lv">£31</div></div>
+          <div class="lrow"><div><div class="lt">Mill Lane</div><div class="ls">Wed PM · 310 m² · mow + edging</div></div><div class="lv">£88</div></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v16M4 12h16"/></svg><span>Jobs</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7"/><path d="M4 20h16"/></svg><span>Earnings</span></a>
+        </div>
+      </div></div>
+      <div class="cap">08 · Job list</div>
+    </div>
+
+    <!-- 9 · EARNINGS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Earnings</div><div class="r">Export</div></div>
+        <div class="body">
+          <div class="fchips"><span class="fchip">Today</span><span class="fchip on">7 days</span><span class="fchip">30 days</span><span class="fchip">YTD</span></div>
+          <div style="height:20px"></div>
+          <div class="hero">
+            <div class="he">Net · last 7 days</div>
+            <div class="hv">£610.20</div>
+            <div class="sub">
+              <div><div class="n">14</div><div class="sl">Jobs</div></div>
+              <div><div class="n">£718</div><div class="sl">Gross</div></div>
+              <div><div class="n">£108</div><div class="sl">Fees</div></div>
+            </div>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Breakdown</div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">6 Maltings Lane</div><div class="ls">Fri 25 Jul · mow + edging</div></div><div class="lv">£61.20</div></div>
+          <div class="lrow"><div><div class="lt">Church Road</div><div class="ls">Fri 25 Jul · mow</div></div><div class="lv">£32.30</div></div>
+          <div class="lrow"><div><div class="lt">Queen Street</div><div class="ls">Thu 24 Jul · mow</div></div><div class="lv">£26.35</div></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v16M4 12h16"/></svg><span>Jobs</span></a>
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 3 6-7"/><path d="M4 20h16"/></svg><span>Earnings</span></a>
+        </div>
+      </div></div>
+      <div class="cap">09 · Earnings</div>
+    </div>
+
+    <!-- 10 · JOB DETAIL -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Job</div><div class="r">Mine</div></div>
+        <div class="body">
+          <div class="map"><div class="plot"></div></div>
+          <div style="height:16px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="eyebrow">Accepted</div><span class="pill">Tue · 8am–12pm</span>
+          </div>
+          <div class="h-sec" style="margin-top:8px">6 Maltings Lane</div>
+          <div class="muted" style="font-size:13px;margin-top:2px">Colchester · CO2 8JX</div>
+          <div class="rule"></div>
+          <div class="row" style="padding-top:0"><div class="k">Area</div><div class="v num">236 m²</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Service</div><div class="v">Mow + edging</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Your payout</div><div class="v num">£61.20</div></div>
+          <div class="rule"></div>
+          <button class="btn sec" style="margin-bottom:10px">Re-measure on site</button>
+          <button class="btn sec">Take me there</button>
+        </div>
+        <div style="padding:12px 20px 20px"><button class="btn pri">Start job</button></div>
+      </div></div>
+      <div class="cap">10 · Job detail</div>
+    </div>
+
+    <div class="sect"><h2>Customer · Post-booking &amp; assistant</h2></div>
+
+    <!-- 11 · BOOKINGS LIST -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Bookings</div></div>
+        <div class="body">
+          <div class="seg"><div class="on">Active</div><div>Completed</div><div>Cancelled</div></div>
+          <div style="height:14px"></div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">14 Rectory Road</div><div class="ls">Tue 29 Jul · Morning</div></div><div class="lv"><span class="pill soft">Confirmed</span></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">6 Maltings Lane</div><div class="ls">Thu 31 Jul · Afternoon</div></div><div class="lv"><span class="pill soft">Accepted</span></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">14 Rectory Road</div><div class="ls">Fri 25 Jul · needs your OK</div></div><div class="lv"><span class="pill" style="border-color:var(--amber);color:var(--amber)">Action</span></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9h16M9 3v4M15 3v4"/></svg><span>Bookings</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18"/></svg><span>Payment</span></a>
+        </div>
+      </div></div>
+      <div class="cap">11 · Bookings list</div>
+    </div>
+
+    <!-- 16 · BILLING & PAYMENTS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Billing</div></div>
+        <div class="body">
+          <div class="eyebrow">Payment method</div>
+          <div class="card" style="margin-top:12px;display:flex;align-items:center;gap:14px">
+            <div style="width:40px;height:26px;border:1px solid var(--hairline);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.04em;color:var(--ink)">VISA</div>
+            <div><div style="font-size:14px;font-weight:600;color:var(--ink)">•••• 4242</div><div class="muted" style="font-size:12px">Expires 08 / 27</div></div>
+            <span class="pill soft" style="margin-left:auto">Default</span>
+          </div>
+          <div style="height:10px"></div>
+          <button class="btn sec">＋  Add payment method</button>
+          <div class="rule"></div>
+          <div class="eyebrow">Billing history</div>
+          <div style="height:4px"></div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">14 Rectory Road</div><div class="ls">11 Jul · mow + edging</div></div><div class="lv">£68.00<div class="pill soft" style="margin-top:4px">Paid</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">14 Rectory Road</div><div class="ls">27 Jun · mow</div></div><div class="lv">£52.00<div class="pill soft" style="margin-top:4px">Paid</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">14 Rectory Road</div><div class="ls">13 Jun · mow</div></div><div class="lv">£52.00<div class="pill soft" style="margin-top:4px">Paid</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 9h16M9 3v4M15 3v4"/></svg><span>Bookings</span></a>
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18"/></svg><span>Payment</span></a>
+        </div>
+      </div></div>
+      <div class="cap">16 · Billing &amp; payments</div>
+    </div>
+
+    <!-- 12 · BOOKING STATUS (approve + rate) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Your booking</div></div>
+        <div class="body">
+          <div class="h-sec">14 Rectory Road</div>
+          <div class="muted" style="font-size:13px;margin-top:2px">Completed · Fri 25 Jul</div>
+          <div style="height:16px"></div>
+          <!-- re-measure approval -->
+          <div class="card" style="border-color:#e6c9a6;background:#fbf3e6">
+            <div class="eyebrow" style="color:var(--amber)">Mower re-measured</div>
+            <div style="font-size:13px;color:var(--ink);margin-top:8px;line-height:1.45">The lawn was larger than booked, so the price changed. Nothing is charged until you decide.</div>
+            <div class="row" style="padding:8px 0 0"><div class="k">You booked</div><div class="v num">£68.00</div></div>
+            <div class="row" style="padding:4px 0"><div class="k">New price</div><div class="v num" style="font-weight:700">£79.00</div></div>
+            <div class="two" style="margin-top:12px"><button class="btn sec" style="height:44px">Decline</button><button class="btn pri" style="height:44px">Approve</button></div>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">How was your mow?</div>
+          <div style="font-size:26px;letter-spacing:3px;margin-top:10px;color:var(--green)">★★★★<span style="color:var(--hairline)">★</span></div>
+          <div style="height:12px"></div>
+          <button class="btn pri">Submit rating</button>
+        </div>
+      </div></div>
+      <div class="cap">12 · Status · approve &amp; rate</div>
+    </div>
+
+    <!-- 13 · ASSISTANT -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">MOWR assistant</div></div>
+        <div class="body" style="padding-top:14px">
+          <div class="msg bot">Hi! I can book a mow, change a booking, or answer questions. What do you need?</div>
+          <div class="msg me">Move my Tuesday mow to Thursday morning</div>
+          <div class="msg bot">Your booking at 14 Rectory Road is on Tue 29 Jul (morning). Move it to Thu 31 Jul, morning — shall I confirm?</div>
+          <div class="msg me">Yes please</div>
+          <div class="msg bot">Done — you’re now booked for Thu 31 Jul, morning. Anything else?</div>
+        </div>
+        <div class="composer">
+          <div class="inp">Message the assistant…</div>
+          <div class="send"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
+        </div>
+      </div></div>
+      <div class="cap">13 · Assistant</div>
+    </div>
+
+    <div class="sect"><h2>Admin</h2></div>
+
+    <!-- 14 · ADMIN DASHBOARD -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Dashboard</div><div class="r">7 days</div></div>
+        <div class="body">
+          <div class="hero">
+            <div class="he">Revenue · last 7 days</div>
+            <div class="hv">£4,280</div>
+            <div class="sub">
+              <div><div class="n">62</div><div class="sl">Jobs</div></div>
+              <div><div class="n">£642</div><div class="sl">Commission</div></div>
+              <div><div class="n">9</div><div class="sl">Mowers</div></div>
+            </div>
+          </div>
+          <div class="rule"></div>
+          <div class="eyebrow">Jobs by status</div>
+          <div class="row" style="padding-top:8px"><div class="k">Completed</div><div class="v num">48</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">In progress</div><div class="v num">6</div></div>
+          <div class="row" style="border-top:1px solid var(--hairline)"><div class="k">Needs approval</div><div class="v num" style="color:var(--amber)">2</div></div>
+          <div class="rule"></div>
+          <div class="eyebrow">Attention</div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">2 mowers awaiting approval</div><div class="ls">Vetting queue</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>
+        <div class="nav">
+          <a class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13h8V3H3zM13 21h8V8h-8zM3 21h8v-5H3z"/></svg><span>Dashboard</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M4 20a5 5 0 0 1 10 0M16 6h5M18.5 3.5v5"/></svg><span>Mowers</span></a>
+          <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><span>Settings</span></a>
+        </div>
+      </div></div>
+      <div class="cap">14 · Admin dashboard</div>
+    </div>
+
+    <!-- 15 · ADMIN COMMISSION TIERS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="status"></div>
+        <div class="appbar"><div class="t">Commission tiers</div></div>
+        <div class="body">
+          <div class="eyebrow">Default ladder</div>
+          <p class="muted" style="font-size:12px;margin-top:6px">Applies to every mower unless a custom ladder is set on their profile.</p>
+          <div style="height:14px"></div>
+          <div class="lrow" style="border-top:none"><div><div class="lt">Bronze · 13% fee</div><div class="ls">10 jobs · 4.0★ · 5 reviews</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">Silver · 11% fee</div><div class="ls">30 jobs · 4.3★ · 15 reviews</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="lrow"><div><div class="lt">Gold · 9% fee</div><div class="ls">75 jobs · 4.5★ · 40 reviews</div></div><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>
+        <div style="padding:12px 20px 20px"><button class="btn pri">＋  New tier</button></div>
+      </div></div>
+      <div class="cap">15 · Admin commission tiers</div>
+    </div>
+
+  </div>
+</div>

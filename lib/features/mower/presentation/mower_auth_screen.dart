@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../admin/data/admin_repository.dart';
+import '../../admin/presentation/admin_shell.dart';
 import '../../auth/data/auth_repository.dart';
 import '../data/mower_repository.dart';
 import 'mower_home_screen.dart';
@@ -82,7 +85,15 @@ class _MowerAuthScreenState extends ConsumerState<MowerAuthScreen> {
         await mower.registerAsMower();
       }
       if (!mounted) return;
-      context.go(MowerHomeScreen.routePath);
+      // Admins sign in here too — there is no separate admin login, and no
+      // in-app way to become one. Send them to the admin surface rather than a
+      // mower dashboard that would be empty for them.
+      final isAdmin = _signInMode &&
+          await ref.read(adminRepositoryProvider).isAdmin();
+      if (!mounted) return;
+      context.go(
+        isAdmin ? AdminShell.routePath : MowerHomeScreen.routePath,
+      );
     } catch (e) {
       if (!mounted) return;
       final message = e is AuthFailure ? e.message : 'Something went wrong.';
@@ -112,17 +123,20 @@ class _MowerAuthScreenState extends ConsumerState<MowerAuthScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: cs.primaryContainer,
-                child: Icon(Icons.agriculture_rounded,
-                    color: cs.onPrimaryContainer),
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.agriculture_rounded, color: cs.onSurface),
               ),
               const SizedBox(height: 20),
               Text(
                 _signInMode ? 'Mower sign in' : 'Become a MOWR',
                 style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               Text(
@@ -131,7 +145,7 @@ class _MowerAuthScreenState extends ConsumerState<MowerAuthScreen> {
                     : 'Sign up to pick up lawn-mowing jobs near you. New '
                         'mowers are checked before their first job.',
                 style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: Colors.grey.shade700),
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 20),
               if (!_signInMode) ...[

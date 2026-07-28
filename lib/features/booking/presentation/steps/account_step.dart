@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,8 +11,21 @@ import 'payment_step.dart';
 /// Guest → account (or sign in), then hand off to the payment step. The booking
 /// is NOT saved here — it's only confirmed after the card + hold on the next
 /// screen.
+///
+/// Also serves as the standalone customer sign-in. Pass [nextRoute] (via the
+/// `?next=` query parameter) and the screen drops the booking-flow chrome,
+/// opens straight in sign-in mode, and returns there instead of continuing to
+/// payment — otherwise a customer signing in merely to track a booking would be
+/// dropped into paying for a booking they are not making.
 class AccountStepScreen extends ConsumerStatefulWidget {
-  const AccountStepScreen({super.key});
+  const AccountStepScreen({super.key, this.nextRoute});
+
+  /// Where to go after a successful sign-in. Null = the booking flow, which
+  /// continues to the payment step.
+  final String? nextRoute;
+
+  /// True when used as a standalone sign-in rather than a booking step.
+  bool get isStandalone => nextRoute != null;
 
   static const routePath = '/booking/account';
 
@@ -33,6 +47,8 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
   @override
   void initState() {
     super.initState();
+    // A standalone visitor already has an account — that's why they're here.
+    _signInMode = widget.isStandalone;
     final draft = ref.read(bookingDraftProvider);
     _nameController.text = draft.customerName ?? '';
     _emailController.text = draft.customerEmail ?? '';
@@ -98,7 +114,14 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
       }
 
       if (!mounted) return;
-      context.push(PaymentStepScreen.routePath);
+      final next = widget.nextRoute;
+      if (next != null) {
+        // Replace, so backing out doesn't land on a sign-in form they've
+        // already completed.
+        context.go(next);
+      } else {
+        context.push(PaymentStepScreen.routePath);
+      }
     } catch (e) {
       if (!mounted) return;
       final message = e is AuthFailure ? e.message : 'Something went wrong.';
@@ -121,10 +144,7 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BookingShell(
-      stepIndex: kStepAccount,
-      stepLabel: _signInMode ? 'Sign in' : 'Create your account',
-      bottomBar: SafeArea(
+    final bottomBar = SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: FilledButton.icon(
@@ -139,28 +159,33 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
                 : const Icon(Icons.arrow_forward_rounded),
             label: Text(_loading
                 ? 'Please wait…'
-                : (_signInMode
-                    ? 'Sign in & continue'
-                    : 'Create account & continue')),
+                : widget.isStandalone
+                    ? 'Sign in'
+                    : (_signInMode
+                        ? 'Sign in & continue'
+                        : 'Create account & continue')),
           ),
         ),
-      ),
-      body: Column(
+      );
+
+    final body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             _signInMode ? 'Welcome back' : 'Almost there',
             style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+                ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
           ),
           const SizedBox(height: 4),
           Text(
-            _signInMode
+            widget.isStandalone
+                ? 'Sign in to see and manage your bookings.'
+                : _signInMode
                 ? 'Sign in to confirm your booking.'
                 : 'Create your account to confirm the booking — next you’ll add '
                     'a card to secure it.',
             style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.grey.shade700),
+                ?.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 20),
           if (!_signInMode) ...[
@@ -254,7 +279,26 @@ class _AccountStepScreenState extends ConsumerState<AccountStepScreen> {
             ),
           ),
         ],
-      ),
+      );
+
+    // Standalone sign-in: no step counter or progress bar, because this isn't
+    // a step in any booking.
+    if (widget.isStandalone) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Sign in')),
+        bottomNavigationBar: bottomBar,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: body,
+        ),
+      );
+    }
+
+    return BookingShell(
+      stepIndex: kStepAccount,
+      stepLabel: _signInMode ? 'Sign in' : 'Create your account',
+      bottomBar: bottomBar,
+      body: body,
     );
   }
 }
@@ -299,7 +343,7 @@ class _PasswordStrengthBar extends StatelessWidget {
                 height: 6,
                 margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
                 decoration: BoxDecoration(
-                  color: filled ? color : Colors.grey.shade300,
+                  color: filled ? color : AppColors.border,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),

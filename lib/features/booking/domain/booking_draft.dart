@@ -16,6 +16,48 @@ enum AccessType { straightforward, restricted, noSideAccess }
 
 enum TimeWindow { any, morning, afternoon, evening }
 
+/// How often the customer wants the mow repeated. [days] is the gap between
+/// visits (0 = one-off). Persisted as `bookings.recurrence_interval_days`, so an
+/// arbitrary day count is supported — the presets are just quick picks and the
+/// customer can choose a custom "every N days". Drives recurrence + loyalty
+/// discounts.
+@immutable
+class RecurrenceInterval {
+  const RecurrenceInterval(this.days);
+
+  /// Gap between visits in days (0 = one-off).
+  final int days;
+
+  bool get isRecurring => days > 0;
+
+  static const oneOff = RecurrenceInterval(0);
+  static const weekly = RecurrenceInterval(7);
+  static const fortnightly = RecurrenceInterval(14);
+  static const threeWeekly = RecurrenceInterval(21);
+
+  /// The quick-pick chips shown on the schedule step (custom is offered
+  /// separately for any other day count).
+  static const presets = [oneOff, weekly, fortnightly, threeWeekly];
+
+  /// True when [days] isn't one of the [presets] — i.e. a custom interval.
+  bool get isCustom => isRecurring && !presets.any((p) => p.days == days);
+
+  String get label => switch (days) {
+        0 => 'One-off',
+        7 => 'Weekly',
+        14 => 'Every 2 weeks',
+        21 => 'Every 3 weeks',
+        _ => 'Every $days days',
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is RecurrenceInterval && other.days == days;
+
+  @override
+  int get hashCode => days.hashCode;
+}
+
 /// In-progress booking, persisted in Riverpod across all flow steps.
 ///
 /// [propertyId] and [selectedLawnIds] are set by the returning-customer
@@ -46,6 +88,7 @@ class BookingDraft {
     this.scheduledDate,
     this.asap = true,
     this.timeWindow = TimeWindow.any,
+    this.recurrence = RecurrenceInterval.oneOff,
     this.accessProvided,
     this.customerName,
     this.customerEmail,
@@ -106,6 +149,9 @@ class BookingDraft {
   /// Preferred time of day; defaults to [TimeWindow.any].
   final TimeWindow timeWindow;
 
+  /// How often to repeat the mow; defaults to a one-off.
+  final RecurrenceInterval recurrence;
+
   /// Access fork (spec §5a). true = access is available without the customer
   /// present (gate open / open frontage); false = the customer will be home to
   /// let the mower in. Null until answered on the schedule step.
@@ -137,6 +183,7 @@ class BookingDraft {
     DateTime? scheduledDate,
     bool? asap,
     TimeWindow? timeWindow,
+    RecurrenceInterval? recurrence,
     bool? accessProvided,
     String? customerName,
     String? customerEmail,
@@ -162,6 +209,7 @@ class BookingDraft {
       scheduledDate: scheduledDate ?? this.scheduledDate,
       asap: asap ?? this.asap,
       timeWindow: timeWindow ?? this.timeWindow,
+      recurrence: recurrence ?? this.recurrence,
       accessProvided: accessProvided ?? this.accessProvided,
       customerName: customerName ?? this.customerName,
       customerEmail: customerEmail ?? this.customerEmail,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -70,17 +71,21 @@ class _EmailCaptureScreenState extends ConsumerState<EmailCaptureScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: cs.primaryContainer,
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(Icons.mark_email_read_rounded,
-                    color: cs.onPrimaryContainer),
+                    color: cs.onSurface),
               ),
               const SizedBox(height: 20),
               Text(
                 'Let’s get your price',
                 style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+                    ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
               ),
               const SizedBox(height: 8),
               Text(
@@ -88,7 +93,7 @@ class _EmailCaptureScreenState extends ConsumerState<EmailCaptureScreen> {
                 'up where you left off, and we can send you a reminder with a '
                 'link if you don’t finish.',
                 style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: Colors.grey.shade700, height: 1.4),
+                    ?.copyWith(color: AppColors.textSecondary, height: 1.4),
               ),
               const SizedBox(height: 24),
               TextField(
@@ -123,7 +128,7 @@ class _EmailCaptureScreenState extends ConsumerState<EmailCaptureScreen> {
                 'updates.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall
-                    ?.copyWith(color: Colors.grey.shade500),
+                    ?.copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),

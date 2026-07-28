@@ -4,8 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../data/mower_repository.dart';
+
+/// Opens turn-by-turn directions to the job in the device's own maps app
+/// (Google/Apple Maps). We deliberately don't build navigation in-house — the
+/// phone's maps app is best-in-class, free, and needs no API key.
+Future<void> openDirections({
+  double? lat,
+  double? lng,
+  String? address,
+}) async {
+  Uri uri;
+  if (lat != null && lng != null) {
+    uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving');
+  } else if ((address ?? '').trim().isNotEmpty) {
+    final q = Uri.encodeComponent(address!.trim());
+    uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$q&travelmode=driving');
+  } else {
+    return;
+  }
+  await launchUrl(uri, mode: LaunchMode.externalApplication);
+}
 
 class MowerJobDetailScreen extends ConsumerStatefulWidget {
   const MowerJobDetailScreen({super.key, required this.bookingId});
@@ -138,21 +162,143 @@ class _MowerJobDetailScreenState extends ConsumerState<MowerJobDetailScreen> {
     await _load();
   }
 
+  /// Release a not-yet-started job back to the pool. Warns that repeatedly
+  /// dropping auto-assigned jobs can pause auto-accept.
+  Future<void> _releaseJob() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Release this job?'),
+        content: const Text(
+          'It goes back to the pool for another mower. If it was auto-assigned, '
+          'this counts as a refusal — repeatedly refusing auto-assigned jobs '
+          'pauses your auto-accept.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep it')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Release')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _busy = true);
+    try {
+      final res = await ref.read(mowerRepositoryProvider).releaseJob(widget.bookingId);
+      if (!mounted) return;
+      final paused = res['auto_paused'] == true;
+      final wasAuto = res['was_auto'] == true;
+      final n = (res['refusals_30d'] as num?)?.toInt() ?? 0;
+      _snack(paused
+          ? 'Released. Auto-accept paused — $n auto-assigned jobs declined recently.'
+          : wasAuto
+              ? 'Released. Heads-up: $n auto-assigned jobs declined in 30 days.'
+              : 'Job released.');
+      context.pop();
+    } catch (e) {
+      _snack('$e');
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Cancel a job already under way (en route → in progress). Warns clearly:
+  /// cancelling after going en route is flagged as a possible off-app job.
+  Future<void> _cancelJob() async {
+    final reason = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel this job?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The job goes back to the pool. Cancelling after you were on your '
+              'way is flagged for review — MOWR jobs must be completed and paid '
+              'through the app.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reason,
+              minLines: 1,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Reason (optional)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep it')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Cancel job')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(mowerRepositoryProvider).cancelJob(
+            widget.bookingId,
+            reason: reason.text.trim().isEmpty ? null : reason.text.trim(),
+          );
+      if (!mounted) return;
+      _snack('Job cancelled.');
+      context.pop();
+    } catch (e) {
+      _snack('$e');
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = _job?['status'] as String? ?? '';
     final canRemeasure = _job != null &&
         const {'accepted', 'en_route', 'arrived', 'in_progress'}
             .contains(status);
+    // Chat opens once the mower is on the way (same point the address unlocks).
+    final chatOpen = const {'en_route', 'arrived', 'in_progress'}.contains(status);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Job'),
         actions: [
+          if (chatOpen)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline_rounded),
+              tooltip: 'Message customer',
+              onPressed: _busy
+                  ? null
+                  : () => context.push('/chat/${widget.bookingId}'
+                      '?title=${Uri.encodeComponent('Customer')}'),
+            ),
           if (canRemeasure)
             IconButton(
               icon: const Icon(Icons.straighten_rounded),
               tooltip: 'Check / re-measure',
               onPressed: _busy ? null : _openRemeasure,
+            ),
+          if (status == 'accepted' || chatOpen)
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                if (v == 'release') _releaseJob();
+                if (v == 'cancel') _cancelJob();
+              },
+              itemBuilder: (_) => [
+                if (status == 'accepted')
+                  const PopupMenuItem(
+                      value: 'release', child: Text("Can't do this one")),
+                if (chatOpen)
+                  const PopupMenuItem(
+                      value: 'cancel', child: Text('Cancel this job')),
+              ],
             ),
         ],
       ),
@@ -300,6 +446,10 @@ class _JobBody extends StatelessWidget {
     final accessNotes = job['access_notes'] as String?;
     final accessProvided = job['access_provided'] as bool?;
     final status = job['status'] as String? ?? 'accepted';
+    // Exact street + coords are withheld by the server until the mower is on
+    // their way (anti-circumvention). Default true for older data / the
+    // customer's own view.
+    final unlocked = job['address_unlocked'] as bool? ?? true;
 
     // Payment + earnings.
     final paymentStatus = job['payment_status'] as String?;
@@ -318,15 +468,13 @@ class _JobBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        Text(address,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900, height: 1.1)),
+        Text(address, style: theme.textTheme.headlineSmall),
         const SizedBox(height: 6),
         Text(
             isPaid
                 ? 'Paid: £${chargeAmount.toStringAsFixed(2)}'
                 : 'Payment held: £${total.toStringAsFixed(2)}',
-            style: TextStyle(color: Colors.grey.shade700)),
+            style: TextStyle(color: AppColors.textSecondary)),
         if (revised != null) ...[
           const SizedBox(height: 2),
           Text(
@@ -342,6 +490,40 @@ class _JobBody extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: 12),
+        if (unlocked)
+          FilledButton.tonalIcon(
+            onPressed: () => openDirections(
+              lat: (job['lat'] as num?)?.toDouble(),
+              lng: (job['lng'] as num?)?.toDouble(),
+              address: address,
+            ),
+            icon: const Icon(Icons.directions_rounded),
+            label: const Text('Take me there'),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline_rounded,
+                    size: 18, color: AppColors.textSecondary),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'The exact address unlocks when you’re on your way. Tap '
+                    '“On my way” below to reveal it and get directions.',
+                    style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 8),
         _StatusChip(status: status),
         const SizedBox(height: 14),
@@ -358,7 +540,7 @@ class _JobBody extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.orange.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
@@ -382,7 +564,7 @@ class _JobBody extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
@@ -401,13 +583,13 @@ class _JobBody extends StatelessWidget {
           accessProvided == true
               ? 'Access provided — you can start without the customer.'
               : 'Customer will be home to give access.',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         if (accessNotes != null && accessNotes.trim().isNotEmpty) ...[
           const SizedBox(height: 4),
           Text('“$accessNotes”',
               style: TextStyle(
-                  color: Colors.grey.shade700, fontStyle: FontStyle.italic)),
+                  color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
         ],
         const SizedBox(height: 20),
         Text('Lawns', style: theme.textTheme.labelLarge),
@@ -421,8 +603,8 @@ class _JobBody extends StatelessWidget {
           return Card(
             clipBehavior: Clip.antiAlias,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: AppColors.border),
             ),
             margin: const EdgeInsets.only(bottom: 10),
             child: Padding(
@@ -438,7 +620,7 @@ class _JobBody extends StatelessWidget {
                     '${area.toStringAsFixed(0)} m²  ·  '
                     '${perim.toStringAsFixed(1)} m edge  ·  '
                     '$height grass${edging ? '  ·  edging' : ''}',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -486,7 +668,7 @@ class _EarningsCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cs.primaryContainer.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
@@ -496,7 +678,7 @@ class _EarningsCard extends StatelessWidget {
               '−£${fee.toStringAsFixed(2)}'),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1, color: Colors.grey.shade300),
+            child: Divider(height: 1, color: AppColors.border),
           ),
           _row(
             context,
@@ -519,13 +701,13 @@ class _EarningsCard extends StatelessWidget {
             style: TextStyle(
               fontSize: strong ? 15 : 13,
               fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
-              color: strong ? cs.onSurface : Colors.grey.shade700,
+              color: strong ? cs.onSurface : AppColors.textSecondary,
             )),
         Text(value,
             style: TextStyle(
               fontSize: strong ? 16 : 13,
-              fontWeight: strong ? FontWeight.w900 : FontWeight.w600,
-              color: strong ? cs.primary : Colors.grey.shade800,
+              fontWeight: strong ? FontWeight.w700 : FontWeight.w600,
+              color: strong ? cs.primary : AppColors.textPrimary,
             )),
       ],
     );

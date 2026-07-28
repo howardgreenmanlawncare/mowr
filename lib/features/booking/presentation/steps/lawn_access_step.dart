@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/booking_draft.dart';
@@ -100,7 +101,7 @@ class _LawnAccessBody extends StatelessWidget {
         Text(
           'How do we get to the lawn?',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
         ),
@@ -108,7 +109,7 @@ class _LawnAccessBody extends StatelessWidget {
         Text(
           'Select all that apply.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.textSecondary,
               ),
         ),
         const SizedBox(height: 20),
@@ -144,8 +145,8 @@ class _PresetCard extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -163,14 +164,14 @@ class _PresetCard extends StatelessWidget {
               selectedColor: cs.primary,
               checkmarkColor: Colors.white,
               side: BorderSide(
-                color: selected ? cs.primary : Colors.grey.shade300,
+                color: selected ? cs.primary : AppColors.border,
               ),
               labelStyle: TextStyle(
                 color: selected ? Colors.white : Colors.black87,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
             );
           }).toList(),
@@ -205,7 +206,7 @@ class _NotesField extends StatelessWidget {
         hintText: 'e.g. gate code, dog in garden, parking',
         errorText: showError ? 'Please add notes for this access type' : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
         fillColor: Colors.white,

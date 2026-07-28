@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -219,9 +220,9 @@ class _MowerRemeasureScreenState extends ConsumerState<MowerRemeasureScreen> {
               const SizedBox(height: 12),
               Text(title,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w900, fontSize: 20)),
+                      fontWeight: FontWeight.w700, fontSize: 20)),
               const SizedBox(height: 8),
-              Text(bodyText, style: TextStyle(color: Colors.grey.shade800)),
+              Text(bodyText, style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -252,7 +253,7 @@ class _MowerRemeasureScreenState extends ConsumerState<MowerRemeasureScreen> {
                     Text(
                       'Re-trace any lawn that doesn’t match what’s on '
                       'the ground. The price is recalculated when you submit.',
-                      style: TextStyle(color: Colors.grey.shade700),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 16),
                     for (final lawn in _lawns) _LawnEditCard(
@@ -320,7 +321,7 @@ class _LawnEditCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.border),
       ),
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -352,13 +353,13 @@ class _LawnEditCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            _row('Booked', lawn.origArea, lawn.origPerimeter, Colors.grey.shade600),
+            _row('Booked', lawn.origArea, lawn.origPerimeter, AppColors.textSecondary),
             const SizedBox(height: 2),
             _row(
               'Now',
               lawn.area,
               lawn.perimeter,
-              lawn.changed ? cs.primary : Colors.grey.shade600,
+              lawn.changed ? cs.primary : AppColors.textSecondary,
               bold: lawn.changed,
             ),
             const SizedBox(height: 12),
@@ -394,7 +395,7 @@ class _LawnEditCard extends StatelessWidget {
         SizedBox(
           width: 58,
           child: Text(label,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         ),
         Text(
           '${area.toStringAsFixed(0)} m²  ·  '

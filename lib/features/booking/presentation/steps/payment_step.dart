@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -109,21 +110,21 @@ class _PaymentStepScreenState extends ConsumerState<PaymentStepScreen> {
           Text(
             'Secure your booking',
             style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+                ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
           ),
           const SizedBox(height: 8),
           Text(
             'Add your card to confirm. We’ll place a hold for the total — you '
             'are only charged once your mow is completed.',
             style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.grey.shade700, height: 1.4),
+                ?.copyWith(color: AppColors.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: cs.primaryContainer.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,7 +134,7 @@ class _PaymentStepScreenState extends ConsumerState<PaymentStepScreen> {
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 Text(quote.money(quote.total),
                     style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.w900)),
+                        fontSize: 22, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -141,14 +142,14 @@ class _PaymentStepScreenState extends ConsumerState<PaymentStepScreen> {
           Row(
             children: [
               Icon(Icons.lock_outline_rounded,
-                  size: 16, color: Colors.grey.shade600),
+                  size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Payments are handled securely by Stripe. MOWR never sees '
                   'your card number.',
                   style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey.shade600),
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
               ),
             ],

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/location/location_service.dart';
+import '../../../../core/map/map_load_state.dart';
 import '../../../../core/map/satellite_tiles.dart';
 import '../../providers/booking_draft_provider.dart';
 import 'lawn_step.dart';
@@ -27,6 +28,7 @@ class AddressStepScreen extends ConsumerStatefulWidget {
 
 class _AddressStepScreenState extends ConsumerState<AddressStepScreen> {
   final _mapController = MapController();
+  final _mapLoad = MapLoadState();
   late final LatLng _initialCentre;
   late final double _initialZoom;
   bool _locating = false;
@@ -46,6 +48,7 @@ class _AddressStepScreenState extends ConsumerState<AddressStepScreen> {
 
   @override
   void dispose() {
+    _mapLoad.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -111,7 +114,7 @@ class _AddressStepScreenState extends ConsumerState<AddressStepScreen> {
               ),
             ),
             children: [
-              satelliteTileLayer(),
+              satelliteTileLayer(loadState: _mapLoad),
             ],
           ),
           Positioned(
@@ -135,6 +138,11 @@ class _AddressStepScreenState extends ConsumerState<AddressStepScreen> {
             left: 8,
             bottom: 8,
             child: _AttributionChip(text: satelliteAttribution()),
+          ),
+          // Last child = topmost, so the loading state covers the pin and map
+          // controls too rather than having them float over a spinner.
+          Positioned.fill(
+            child: MapLoadingOverlay(state: _mapLoad),
           ),
         ],
       ),

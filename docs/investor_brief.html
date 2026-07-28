@@ -1,0 +1,338 @@
+<title>MOWR — Investor Brief</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --forest: #0f2f18;        /* near-black green — dark grounds */
+    --forest-2: #16451f;
+    --green: #2e7d32;         /* MOWR brand */
+    --green-d: #1b5e20;
+    --lime: #9be04f;          /* growth accent — energy */
+    --lime-ink: #24420f;
+    --paper: #f5f7f1;         /* warm light ground */
+    --panel: #ffffff;
+    --ink: #14201a;           /* green-biased near-black */
+    --muted: #566356;
+    --faint: #8592859f;
+    --line: #dfe4d8;
+    --gold: #b8863b;          /* value / premium marker (semantic, not the accent) */
+
+    --maxw: 1080px;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0c110c; --panel: #141a13; --ink: #eaf0e6; --muted: #9aa898;
+      --faint: #6b7869; --line: #26301f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0c110c; --panel: #141a13; --ink: #eaf0e6; --muted: #9aa898;
+    --faint: #6b7869; --line: #26301f;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f7f1; --panel: #ffffff; --ink: #14201a; --muted: #566356;
+    --faint: #8a9589; --line: #dfe4d8;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.55; -webkit-font-smoothing: antialiased;
+    font-size: 17px;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  section { padding: 76px 0; border-bottom: 1px solid var(--line); }
+  h2, h3 { text-wrap: balance; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background:
+      radial-gradient(120% 90% at 82% 0%, rgba(155,224,79,.16) 0%, transparent 55%),
+      linear-gradient(165deg, var(--forest-2) 0%, var(--forest) 70%);
+    color: #eef5e8; border-bottom: none; padding: 0;
+    position: relative; overflow: hidden;
+  }
+  .hero .wrap { padding-top: 40px; padding-bottom: 84px; }
+  .brandrow { display: flex; align-items: center; gap: 10px; padding: 26px 0 64px; }
+  .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--lime);
+    display: grid; place-items: center; color: var(--lime-ink); font-size: 17px; }
+  .brandrow .wordmark { font-weight: 800; letter-spacing: .26em; font-size: 15px; }
+  .kicker { color: var(--lime); font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; font-size: 12.5px; margin: 0 0 18px; }
+  .hero h1 {
+    font-size: clamp(38px, 6.6vw, 76px); line-height: .98; letter-spacing: -.028em;
+    font-weight: 850; margin: 0 0 22px; max-width: 16ch;
+  }
+  .hero h1 em { font-style: normal; color: var(--lime); }
+  .hero .deck { font-size: clamp(18px, 2.4vw, 22px); color: #cfe0c6; max-width: 54ch;
+    margin: 0 0 32px; line-height: 1.5; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { border: 1px solid rgba(255,255,255,.22); border-radius: 40px;
+    padding: 7px 15px; font-size: 13px; color: #dce9d4; font-weight: 600; }
+  .chip.solid { background: var(--lime); color: var(--lime-ink); border-color: transparent; }
+
+  /* ---------- Section scaffolding ---------- */
+  .eyebrow { display: flex; align-items: baseline; gap: 14px; margin: 0 0 26px; }
+  .eyebrow .num { font-variant-numeric: tabular-nums; font-weight: 800;
+    color: var(--green); font-size: 14px; letter-spacing: .04em; }
+  .eyebrow .lab { text-transform: uppercase; letter-spacing: .16em; font-size: 12.5px;
+    font-weight: 700; color: var(--faint); }
+  h2.title { font-size: clamp(28px, 4vw, 40px); line-height: 1.06; letter-spacing: -.02em;
+    font-weight: 800; margin: 0 0 18px; max-width: 20ch; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 62ch; margin: 0 0 8px; }
+
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px;
+    font-weight: 700; letter-spacing: .04em; padding: 3px 9px; border-radius: 20px;
+    text-transform: uppercase; }
+  .tag.built { background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green-d); }
+  .tag.road { background: color-mix(in srgb, var(--gold) 20%, transparent); color: var(--gold); }
+  :root[data-theme="dark"] .tag.built, @media (prefers-color-scheme: dark){ .tag.built { color: var(--lime); } }
+
+  /* ---------- Grids & cards ---------- */
+  .grid { display: grid; gap: 18px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 760px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+    padding: 22px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 750; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 10px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .card .ic { width: 34px; height: 34px; border-radius: 10px; flex: none;
+    background: color-mix(in srgb, var(--green) 14%, transparent);
+    display: grid; place-items: center; font-size: 17px; margin-bottom: 12px; }
+
+  /* ---------- Stat band ---------- */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+  @media (max-width: 760px) { .stats { grid-template-columns: 1fr; gap: 22px; } }
+  .stat .n { font-size: clamp(30px, 4.4vw, 44px); font-weight: 850; letter-spacing: -.03em;
+    line-height: 1; color: var(--green); font-variant-numeric: tabular-nums; }
+  .stat .k { margin-top: 8px; color: var(--muted); font-size: 15px; }
+
+  /* ---------- Vision band (dark) ---------- */
+  .band { background: linear-gradient(160deg, var(--forest-2), var(--forest));
+    color: #eaf3e3; border: none; }
+  .band .eyebrow .num { color: var(--lime); }
+  .band .eyebrow .lab { color: #9fc78e; }
+  .band h2.title { color: #f2f8ee; }
+  .band .lead { color: #c7d9bd; }
+
+  /* Allocation flow */
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; }
+  @media (max-width: 760px) { .flow { grid-template-columns: 1fr; } }
+  .step { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 18px; position: relative; }
+  .step .s-n { font-size: 12px; font-weight: 800; color: var(--lime); letter-spacing: .1em; }
+  .step h4 { margin: 8px 0 6px; font-size: 16.5px; font-weight: 750; color: #f2f8ee; }
+  .step p { margin: 0; font-size: 14px; color: #b9cdae; }
+  .step::after { content: "→"; position: absolute; right: -12px; top: 50%;
+    transform: translateY(-50%); color: var(--lime); font-weight: 700; z-index: 2; }
+  .flow .step:last-child::after { display: none; }
+  @media (max-width: 760px) { .step::after { content: "↓"; right: 50%; top: auto; bottom: -20px;
+    transform: translateX(50%); } }
+
+  /* ---------- Economics table ---------- */
+  .tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15.5px; }
+  .tbl th, .tbl td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .tbl th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--faint); font-weight: 700; }
+  .tbl td.n, .tbl th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .tbl tr.total td { font-weight: 800; border-top: 2px solid var(--ink); border-bottom: none; }
+  .tbl tr.total td.n { color: var(--green); }
+  .scroll { overflow-x: auto; }
+
+  /* ---------- Roadmap ---------- */
+  .rail { display: grid; gap: 0; }
+  .r-item { display: grid; grid-template-columns: 130px 1fr; gap: 22px; padding: 18px 0;
+    border-top: 1px solid var(--line); }
+  @media (max-width: 620px){ .r-item { grid-template-columns: 1fr; gap: 6px; } }
+  .r-when { font-weight: 800; color: var(--green); font-size: 14.5px; letter-spacing: .02em; }
+  .r-item h4 { margin: 0 0 4px; font-size: 17px; font-weight: 720; }
+  .r-item p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  /* ---------- Ask ---------- */
+  .ask { background: var(--ink); color: var(--paper); border-radius: 24px; padding: 44px;
+    margin-top: 6px; }
+  :root[data-theme="dark"] .ask { background: var(--forest-2); }
+  @media (prefers-color-scheme: dark){ .ask { background: var(--forest-2); } }
+  .ask h2 { font-size: clamp(26px, 3.4vw, 36px); margin: 0 0 12px; letter-spacing: -.02em;
+    color: #fff; font-weight: 820; }
+  .ask p { color: #d6e0d2; max-width: 60ch; margin: 0 0 8px; }
+  .ask .use { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 26px; }
+  @media (max-width: 760px){ .ask .use { grid-template-columns: 1fr; } }
+  .ask .use div { background: rgba(255,255,255,.06); border-radius: 14px; padding: 16px; }
+  .ask .use b { color: var(--lime); display: block; font-size: 15px; margin-bottom: 4px; }
+  .ask .use span { color: #c7d3c2; font-size: 14px; }
+  .fill { color: var(--lime); border-bottom: 1.5px dashed var(--lime); }
+
+  .foot { padding: 40px 0 70px; color: var(--faint); font-size: 13px; }
+  .foot a { color: var(--green); }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow"><span class="mark">🌱</span><span class="wordmark">MOWR</span></div>
+    <p class="kicker">Investor brief · pre-launch</p>
+    <h1>Lawn care, on&nbsp;demand — becoming the <em>logistics network</em> for recurring home services.</h1>
+    <p class="deck">Draw your lawn, get an instant price, and book a vetted local mower — pay only when it's done. Then it repeats on its own: recurring jobs, allocated to the nearest available mower the night before, with a live ETA. Like food delivery, for the outside of the home.</p>
+    <div class="chips">
+      <span class="chip solid">Product built</span>
+      <span class="chip">Single Flutter app · 3 roles</span>
+      <span class="chip">In-house routing engine</span>
+      <span class="chip">United Kingdom</span>
+    </div>
+  </div>
+</header>
+
+<!-- 01 PROBLEM -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">01</span><span class="lab">The problem</span></div>
+    <h2 class="title">Booking a mow is still stuck in the classifieds era.</h2>
+    <p class="lead">Every other everyday service has been made instant — a car, a takeaway, a food shop arrive in a few taps with a price and an ETA. Lawn care hasn't moved. Homeowners still chase quotes, wait days for a callback, haggle, get no-shows, and pay in cash. Mowers, meanwhile, waste half their day driving inefficient routes and chasing invoices.</p>
+    <div class="grid g3" style="margin-top:30px">
+      <div class="card"><div class="ic">📮</div><h3>For homeowners</h3><p>Opaque pricing, slow quotes, unvetted strangers, no tracking, cash-in-hand.</p></div>
+      <div class="card"><div class="ic">🛻</div><h3>For mowers</h3><p>Feast-or-famine work, dead miles between jobs, and payment they have to chase.</p></div>
+      <div class="card"><div class="ic">🔁</div><h3>The gap</h3><p>Lawns need doing every 1–4 weeks, forever. That natural recurrence is pure recurring revenue nobody has productised.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 SOLUTION -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">02</span><span class="lab">The solution</span></div>
+    <h2 class="title">A price in seconds, a vetted mower, paid when it's done.</h2>
+    <p class="lead">MOWR is a three-sided marketplace in one app — customer, mower, and admin — on one backend. The customer flow is live and built today:</p>
+    <div class="grid g2" style="margin-top:28px">
+      <div class="card"><h3>Draw your lawn, see your price <span class="tag built">Built</span></h3><p>Trace the lawn on satellite imagery; the app measures the exact area and perimeter geodesically and prices it instantly — mowing, edging, grass length. No quote, no wait. Real UK address + rooftop-level location lookup.</p></div>
+      <div class="card"><h3>Book a vetted local mower <span class="tag built">Built</span></h3><p>Mowers are admin-approved, identity-anchored (phone-verified, KYC'd through payouts), and — on the roadmap — background-checked. The customer pays only after the job is completed.</p></div>
+      <div class="card"><h3>On-site honesty, not disputes <span class="tag built">Built</span></h3><p>If a lawn is bigger than measured, the mower re-measures on site; the price recomputes server-side and — over a threshold — the customer approves before a penny moves.</p></div>
+      <div class="card"><h3>Mowers get paid automatically <span class="tag built">Built</span></h3><p>Stripe Connect handles payouts and their KYC; MOWR takes a per-mower commission. Mowers see live earnings, route, and one-tap navigation to each job.</p></div>
+    </div>
+    <p class="lead" style="margin-top:22px;font-size:16px">The full screen-by-screen build is documented in the live <a href="#" style="color:var(--green);font-weight:600">Rendered Screens</a> reference.</p>
+  </div>
+</section>
+
+<!-- 03 WHAT'S REAL -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">03</span><span class="lab">Traction on the product, not vanity metrics</span></div>
+    <h2 class="title">Pre-launch, but the hard parts are already built.</h2>
+    <p class="lead">This isn't a deck in front of a prototype. The marketplace works end-to-end, and the pieces that are usually a company's hardest engineering are done and in-house.</p>
+    <div class="stats" style="margin-top:36px">
+      <div class="stat"><div class="n">3-in-1</div><div class="k">Customer, mower &amp; admin in one Flutter codebase on one Supabase backend — build once, ship everywhere.</div></div>
+      <div class="stat"><div class="n">£0</div><div class="k">Per-job routing cost. The scheduling &amp; route optimiser is in-house — no per-trip SaaS eating the margin.</div></div>
+      <div class="stat"><div class="n">15%</div><div class="k">Take rate per job — the marketplace commission, tunable per mower, applied through one pricing engine.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 THE VISION (dark band) -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">04</span><span class="lab">Where this goes</span></div>
+    <h2 class="title">The recurring engine: subscriptions, auto-allocated the night before, with an ETA.</h2>
+    <p class="lead">A one-off mow is a transaction. A lawn mowed every fortnight, forever, is a subscription — and the logistics of fulfilling thousands of them efficiently is the real business. This is how MOWR scales, and the foundation is already in the app.</p>
+    <div class="flow">
+      <div class="step"><div class="s-n">STEP 1</div><h4>Customer sets a rhythm</h4><p>"Every 2 weeks." Booked once; it recurs on its own. <span style="color:var(--lime)">Built.</span></p></div>
+      <div class="step"><div class="s-n">STEP 2</div><h4>The night before</h4><p>An optimiser gathers the next day's due jobs and every opted-in mower, and allocates each job to the mower who can do it most efficiently. <span style="color:var(--gold)">Roadmap — engine built.</span></p></div>
+      <div class="step"><div class="s-n">STEP 3</div><h4>Routed &amp; sequenced</h4><p>Each mower gets an optimised day: least driving, honouring every time window. <span style="color:var(--lime)">Built (tested).</span></p></div>
+      <div class="step"><div class="s-n">STEP 4</div><h4>Customer gets an ETA</h4><p>"Your mower arrives ~10:40am." A tracked, delivery-grade experience for the outside of the home. <span style="color:var(--gold)">Roadmap.</span></p></div>
+    </div>
+    <p class="lead" style="margin-top:30px;color:#c7d9bd;font-size:16.5px">The route optimiser that powers step 3 is written and unit-tested today. The fleet allocator in step 2 is the same engine applied across every mower — <em>score each job against each mower, assign the best.</em> Kept deliberately in-house: routing is the operational heart of a scaled home-services network, and owning it protects the margin forever.</p>
+  </div>
+</section>
+
+<!-- 05 WHY US -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">05</span><span class="lab">Why this team, why now</span></div>
+    <h2 class="title">A logistics company wearing a lawn-care coat.</h2>
+    <div class="grid g3" style="margin-top:28px">
+      <div class="card"><div class="ic">🧭</div><h3>Owns the hard part</h3><p>In-house scheduling &amp; routing (OR-Tools / self-hosted OSRM at scale) instead of renting a route-optimisation SaaS. The unit economics improve as we grow, not degrade.</p></div>
+      <div class="card"><div class="ic">🔁</div><h3>Recurring by nature</h3><p>Lawns regrow. Demand is built-in and predictable — the dream substrate for density, routing efficiency, and retention.</p></div>
+      <div class="card"><div class="ic">🌱</div><h3>Expandable surface</h3><p>Adding a service is a data row, not a rebuild. Hedges, gutters, pressure-washing, snow — the same network, more revenue per address.</p></div>
+      <div class="card"><div class="ic">🛰️</div><h3>Measured, not guessed</h3><p>Geodesic lawn measurement from satellite imagery means fair, instant, dispute-free pricing — and clean data for allocation.</p></div>
+      <div class="card"><div class="ic">💳</div><h3>Trust built in</h3><p>Vetting, phone-dedup, on-site re-measure approval, pay-on-completion, and Connect KYC — the trust rails a home-access marketplace lives or dies on.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Density flywheel</h3><p>More customers per postcode → tighter routes → more jobs per mower-hour → better mower pay → more mowers → faster service. It compounds locally.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 MARKET -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">06</span><span class="lab">Market · illustrative</span></div>
+    <h2 class="title">Millions of UK lawns, cut on a schedule, paid in cash today.</h2>
+    <p class="lead">The UK has roughly 23 million households, a large share with a private garden and lawn. Lawn maintenance is a routine, recurring spend currently served by a long tail of sole-trader gardeners and cash jobs — fragmented, offline, and ripe for aggregation.</p>
+    <div class="stats" style="margin-top:34px">
+      <div class="stat"><div class="n">~15m</div><div class="k">UK households with a private garden — the top of the funnel (illustrative).</div></div>
+      <div class="stat"><div class="n">£20–40</div><div class="k">Typical spend per mow; every 1–4 weeks in season — recurring by default.</div></div>
+      <div class="stat"><div class="n">Fragmented</div><div class="k">Served almost entirely by sole traders with no software, no brand, no network.</div></div>
+    </div>
+    <p class="lead" style="margin-top:24px;font-size:14.5px;color:var(--faint)">Figures above are directional market context for framing, not company performance.</p>
+  </div>
+</section>
+
+<!-- 07 MODEL -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">07</span><span class="lab">Business model · illustrative unit economics</span></div>
+    <h2 class="title">A clean take rate on a repeating basket.</h2>
+    <p class="lead">MOWR keeps a commission on every job (15% default, tunable per mower). The magic is recurrence: acquire a customer once, earn on every mow for years. An illustrative mid-size lawn on a fortnightly plan:</p>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>Illustrative — one recurring customer</th><th class="n">Per mow</th><th class="n">Per year (≈22 mows)</th></tr></thead>
+        <tbody>
+          <tr><td>Customer pays (200 m² lawn + edging)</td><td class="n">£54.00</td><td class="n">£1,188</td></tr>
+          <tr><td>Mower payout (85%)</td><td class="n">£45.90</td><td class="n">£1,010</td></tr>
+          <tr class="total"><td>MOWR gross (15% take)</td><td class="n">£8.10</td><td class="n">£178</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card"><h3>Recurring &gt; one-off</h3><p>One acquisition, years of margin. A loyalty engine ("3rd mow 20% off") is built to drive the switch from one-off to subscription.</p></div>
+      <div class="card"><h3>Density lifts it</h3><p>Tighter routes mean more jobs per mower-hour — raising mower pay and MOWR's absolute margin per route without raising prices.</p></div>
+      <div class="card"><h3>More per address</h3><p>Each new service (edging today; hedges, gutters next) stacks revenue on customers already acquired.</p></div>
+    </div>
+    <p class="lead" style="margin-top:22px;font-size:14.5px;color:var(--faint)">Example only, using MOWR's real pricing structure and commission. Not a forecast or current result.</p>
+  </div>
+</section>
+
+<!-- 08 ROADMAP -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">08</span><span class="lab">Roadmap</span></div>
+    <h2 class="title">From working marketplace to autonomous network.</h2>
+    <div class="rail" style="margin-top:20px">
+      <div class="r-item"><div class="r-when">Now · built</div><div><h4>The marketplace works end-to-end</h4><p>Instant-price booking, vetted mowers, Stripe payouts, on-site re-measure, in-house route optimiser, earnings, admin back office, recurring bookings + loyalty discounts.</p></div></div>
+      <div class="r-item"><div class="r-when">Next</div><div><h4>Launch &amp; the notification layer</h4><p>Transactional email/SMS + push so every state change reaches the customer and mower — and the recurring generator that auto-creates each next visit. <span class="tag built">Foundation built</span></p></div></div>
+      <div class="r-item"><div class="r-when">Scaling</div><div><h4>Fleet auto-allocation + customer ETAs</h4><p>The night-before allocator assigns every recurring job to the most efficient opted-in mower; customers get a delivery-grade ETA. <span class="tag road">Engine built</span></p></div></div>
+      <div class="r-item"><div class="r-when">Expansion</div><div><h4>Multi-service &amp; geographic density</h4><p>Hedges, gutters, pressure-washing on the same network; background checks (DBS); city-by-city rollout where route density compounds.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 ASK -->
+<section style="border-bottom:none">
+  <div class="wrap">
+    <div class="eyebrow"><span class="num">09</span><span class="lab">The ask</span></div>
+    <div class="ask">
+      <h2>Raising <span class="fill">[amount]</span> to launch a first city and prove the density flywheel.</h2>
+      <p>The product is built. Capital goes into demand, supply, and the two roadmap pieces that turn a working app into an autonomous recurring-services network.</p>
+      <div class="use">
+        <div><b>Density</b><span>Concentrated customer + mower acquisition in one launch city to prove tight-route economics.</span></div>
+        <div><b>The network brain</b><span>Ship fleet auto-allocation, ETAs and notifications on top of the routing engine already built.</span></div>
+        <div><b>Trust &amp; team</b><span>Background checks, insurance, and the first operations hires to run the launch market.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap foot">
+  <p><strong>About this brief.</strong> Everything described as “built” is implemented in the current MOWR application. Items marked <span class="tag road">Roadmap</span> are planned and, where noted, rest on components already built and tested. Market and unit-economics figures are illustrative — directional context and worked examples using MOWR's real pricing model, not current performance, projections, or a guarantee of results. Prepared for discussion with prospective investors.</p>
+</div>

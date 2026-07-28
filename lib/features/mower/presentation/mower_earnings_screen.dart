@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/ui.dart';
 import '../data/mower_repository.dart';
 import '../domain/mower_earnings.dart';
 import 'mower_payouts_screen.dart';
@@ -279,10 +281,20 @@ class _MowerEarningsScreenState extends ConsumerState<MowerEarningsScreen> {
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
         children: [
-          _summaryCard(d),
-          const SizedBox(height: 12),
+          StatHero(
+            label: 'Net · ${_range.label}',
+            value: '£${d.net.toStringAsFixed(2)}',
+            secondary: [
+              ('${d.jobs}', 'Jobs'),
+              ('£${d.gross.toStringAsFixed(2)}', 'Charged'),
+              ('£${d.fees.toStringAsFixed(2)}', 'MOWR fee'),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(_rangeLabel(), style: Theme.of(context).textTheme.bodySmall),
+          const Hairline(),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
@@ -303,15 +315,10 @@ class _MowerEarningsScreenState extends ConsumerState<MowerEarningsScreen> {
           if (d.rows.isEmpty)
             _emptyRows()
           else ...[
-            Text(
-              d.jobs == 1 ? '1 job' : '${d.jobs} jobs',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  color: Colors.grey.shade700),
-            ),
-            const SizedBox(height: 8),
-            ...d.rows.map(_rowCard),
+            Eyebrow(d.jobs == 1 ? '1 job' : '${d.jobs} jobs'),
+            const SizedBox(height: 2),
+            for (var i = 0; i < d.rows.length; i++)
+              _row(d.rows[i], topBorder: i > 0),
           ],
         ],
       ),
@@ -330,71 +337,10 @@ class _MowerEarningsScreenState extends ConsumerState<MowerEarningsScreen> {
               child: Text(
                 _error ?? 'Could not load your earnings.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryCard(MowerEarnings d) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cs.primaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cs.primary.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(_rangeLabel(),
-              style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: cs.onPrimaryContainer.withValues(alpha: 0.8))),
-          const SizedBox(height: 8),
-          Text('£${d.net.toStringAsFixed(2)}',
-              style: TextStyle(
-                  fontSize: 34,
-                  height: 1,
-                  fontWeight: FontWeight.w900,
-                  color: cs.onPrimaryContainer)),
-          const SizedBox(height: 2),
-          Text('Your take-home',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: cs.onPrimaryContainer.withValues(alpha: 0.85))),
-          const SizedBox(height: 16),
-          Divider(color: cs.primary.withValues(alpha: 0.2), height: 1),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              _mini('Jobs', '${d.jobs}'),
-              _mini('Charged', '£${d.gross.toStringAsFixed(2)}'),
-              _mini('MOWR fee', '£${d.fees.toStringAsFixed(2)}'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _mini(String label, String value) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w900, fontSize: 16, height: 1.1)),
-          const SizedBox(height: 2),
-          Text(label,
-              style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700)),
         ],
       ),
     );
@@ -406,73 +352,62 @@ class _MowerEarningsScreenState extends ConsumerState<MowerEarningsScreen> {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.grass_rounded, size: 40, color: Colors.grey.shade400),
+            const Icon(Icons.grass_rounded, size: 40,
+                color: AppColors.textSecondary),
             const SizedBox(height: 12),
-            Text(
-              'No completed jobs in this period.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+            Text('No completed jobs in this period.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: AppColors.textSecondary)),
           ],
         ),
       ),
     );
   }
 
-  Widget _rowCard(EarningsRow r) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(r.dateLabel,
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey.shade600)),
-                  const SizedBox(height: 2),
-                  Text(
-                    r.address.isEmpty ? 'Property' : r.address,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 14.5),
-                  ),
-                  if ((r.postcode ?? '').trim().isNotEmpty)
-                    Text(r.postcode!,
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade600)),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+  Widget _row(EarningsRow r, {bool topBorder = false}) {
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      decoration: topBorder
+          ? const BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.border)))
+          : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('£${r.net.toStringAsFixed(2)}',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15.5,
-                        color: cs.primary)),
+                Text(r.address.isEmpty ? 'Property' : r.address,
+                    style: text.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(
-                  '£${r.jobTotal.toStringAsFixed(2)} · fee £${r.fee.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  '${r.dateLabel}'
+                  '${(r.postcode ?? '').trim().isNotEmpty ? ' · ${r.postcode}' : ''}',
+                  style: text.bodySmall,
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('£${r.net.toStringAsFixed(2)}',
+                  style: text.titleSmall?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+              const SizedBox(height: 2),
+              Text(
+                '£${r.jobTotal.toStringAsFixed(2)} · fee £${r.fee.toStringAsFixed(2)}',
+                style: text.bodySmall,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

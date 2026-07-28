@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/lawn_area_model.dart';
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
+import '../lawn_map_view.dart';
 import 'grass_height_step.dart';
 import 'lawn_draw_screen.dart';
 
@@ -63,7 +65,7 @@ class LawnStepScreen extends ConsumerWidget {
           Text(
             'Your lawns',
             style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+                ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
           ),
           const SizedBox(height: 4),
           Text(
@@ -72,7 +74,7 @@ class LawnStepScreen extends ConsumerWidget {
                     'measurement, or enter the size yourself.'
                 : 'Add more lawns, or continue when you have them all.',
             style: theme.textTheme.bodyMedium
-                ?.copyWith(color: Colors.grey.shade700),
+                ?.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 20),
           if (lawns.isEmpty)
@@ -119,27 +121,29 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: cs.primaryContainer,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(Icons.grass_rounded,
-                size: 28, color: cs.onPrimaryContainer),
+                size: 26, color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'No lawns added yet',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-          ),
+          Text('No lawns added yet',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
             'Tap “Draw a lawn on the map” to trace your first one.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -159,20 +163,24 @@ class _SavedLawnCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: cs.primaryContainer,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(9),
+              ),
               child: Icon(
                 lawn.isDrawn ? Icons.map_rounded : Icons.edit_rounded,
                 size: 18,
-                color: cs.onPrimaryContainer,
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(width: 12),
@@ -191,15 +199,21 @@ class _SavedLawnCard extends StatelessWidget {
                     '  ·  ${lawn.perimeter.toStringAsFixed(1)} m edge'
                     '${lawn.isDrawn ? '' : '  ·  entered'}',
                     style:
-                        TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                        TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ],
               ),
             ),
+            if (LawnMapView.canShow(lawn))
+              IconButton(
+                onPressed: () => LawnMapView.open(context, lawn),
+                icon: Icon(Icons.map_outlined, color: AppColors.textSecondary),
+                tooltip: 'View on map',
+              ),
             IconButton(
               onPressed: onRemove,
               icon: Icon(Icons.delete_outline_rounded,
-                  color: Colors.grey.shade500),
+                  color: AppColors.textSecondary),
               tooltip: 'Remove',
             ),
           ],
@@ -292,7 +306,7 @@ class _ManualLawnSheetState extends State<_ManualLawnSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

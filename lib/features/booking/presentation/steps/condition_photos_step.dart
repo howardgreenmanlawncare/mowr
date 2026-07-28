@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,7 +20,7 @@ class ConditionPhotosStepScreen extends ConsumerWidget {
     return showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (ctx) => SafeArea(
         child: Column(
@@ -30,7 +31,7 @@ class ConditionPhotosStepScreen extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -108,7 +109,7 @@ class _ConditionPhotosBody extends StatelessWidget {
         Text(
           'Add condition photos',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 height: 1.1,
               ),
         ),
@@ -116,7 +117,7 @@ class _ConditionPhotosBody extends StatelessWidget {
         Text(
           'Optional — show the current state of each lawn. You can skip this.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.textSecondary,
               ),
         ),
         const SizedBox(height: 20),
@@ -157,8 +158,8 @@ class _LawnPhotosCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -167,12 +168,15 @@ class _LawnPhotosCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: cs.primaryContainer,
-                  child: Icon(
-                    Icons.grass_rounded,
-                    color: cs.onPrimaryContainer,
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: Icon(Icons.grass_rounded,
+                      size: 20, color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -233,12 +237,12 @@ class _PhotoThumbnail extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 Icons.broken_image_rounded,
-                color: Colors.grey.shade400,
+                color: Color(0xFFB6B6AE),
               ),
             ),
           ),

@@ -1,0 +1,395 @@
+<title>MOWR — UI Direction &amp; Screens</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #f2f2ee;          /* doc ground, a touch deeper than the app */
+    --panel: #ffffff;
+    --ink: #121212;
+    --sec: #55554f;
+    --faint: #8a8a83;
+    --line: #e4e4df;
+    --green: #34734b;
+    --green-d: #255239;
+    --green-pale: #e7f0e9;
+    --warn: #e7a83b;
+    --err: #cb5148;
+
+    /* App tokens — the phones render in the app's actual new palette. */
+    --a-bg: #f7f7f4; --a-card: #ffffff; --a-ink: #121212; --a-sec: #696966;
+    --a-line: #e4e4df; --a-green: #34734b; --a-green-pale: #e7f0e9;
+    --a-warn: #e7a83b; --a-warn-pale:#fbf0da; --a-err: #cb5148; --a-err-pale:#f8e3e1;
+    --a-fill: #efefea;
+
+    --maxw: 1120px;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f0f0e; --panel:#191917; --ink:#ececE6; --sec:#a7a79e;
+            --faint:#71716a; --line:#2a2a26; }
+  }
+  :root[data-theme="dark"] { --bg:#0f0f0e; --panel:#191917; --ink:#ececE6;
+    --sec:#a7a79e; --faint:#71716a; --line:#2a2a26; }
+  :root[data-theme="light"] { --bg:#f2f2ee; --panel:#fff; --ink:#121212;
+    --sec:#55554f; --faint:#8a8a83; --line:#e4e4df; }
+
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased; font-size:16px; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:40px 24px 72px; }
+
+  /* Masthead */
+  header.mast { border-bottom:1px solid var(--line); padding-bottom:26px; }
+  .kick { font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--green); font-weight:700; margin:0 0 10px; }
+  h1 { font-size:clamp(28px,4.5vw,40px); line-height:1.04; letter-spacing:-.02em;
+    font-weight:700; margin:0 0 10px; }
+  .lede { font-size:16.5px; color:var(--sec); max-width:70ch; margin:0; }
+  .meta { margin-top:14px; font-size:13px; color:var(--faint); }
+
+  h2.sec { font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--faint); font-weight:700; margin:52px 0 18px; }
+
+  /* Design-system panel */
+  .ds { display:grid; grid-template-columns:1.1fr 1fr; gap:22px; }
+  @media (max-width:840px){ .ds { grid-template-columns:1fr; } }
+  .block { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:20px; }
+  .block h3 { margin:0 0 4px; font-size:16px; font-weight:600; }
+  .block p.note { margin:0 0 16px; font-size:13.5px; color:var(--sec); }
+
+  .swatches { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .sw { display:flex; align-items:center; gap:10px; font-size:13px; }
+  .sw i { width:26px; height:26px; border-radius:7px; border:1px solid var(--line); flex:none; }
+  .sw b { font-weight:600; } .sw span { color:var(--faint); font-size:11.5px; }
+
+  .scale > div { display:flex; align-items:baseline; gap:12px; padding:6px 0;
+    border-bottom:1px solid var(--line); }
+  .scale > div:last-child { border-bottom:none; }
+  .scale .lbl { color:var(--faint); font-size:11.5px; width:118px; flex:none; }
+
+  .rules { list-style:none; margin:0; padding:0; font-size:14px; }
+  .rules li { padding:7px 0; border-bottom:1px solid var(--line); display:flex; gap:10px; }
+  .rules li:last-child { border-bottom:none; }
+  .rules .do { color:var(--green); font-weight:700; flex:none; }
+  .rules .no { color:var(--err); font-weight:700; flex:none; }
+
+  /* Component demo bits */
+  .demo { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .b-primary { background:var(--green); color:#fff; border:none; border-radius:12px;
+    padding:13px 20px; font:inherit; font-weight:600; font-size:14px; }
+  .b-sec { background:transparent; color:var(--ink); border:1px solid var(--line);
+    border-radius:12px; padding:12px 18px; font:inherit; font-weight:600; font-size:14px; }
+  .b-text { color:var(--green); font-weight:600; font-size:14px; }
+  .pillx { font-size:12px; font-weight:600; padding:4px 11px; border-radius:999px; }
+  .pillx.ok { background:var(--green-pale); color:var(--green-d); }
+  .pillx.warn { background:#fbf0da; color:#8a5a12; }
+  .pillx.err { background:#f8e3e1; color:var(--err); }
+
+  /* Screens */
+  .screens { display:grid; gap:30px 22px;
+    grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); }
+  figure { margin:0; }
+  figcaption { margin-top:11px; }
+  figcaption .cn { font-weight:600; font-size:14px; }
+  figcaption .cd { font-size:12.5px; color:var(--sec); margin-top:2px; }
+
+  .role { border-left:2px solid var(--green); padding-left:12px; margin:48px 0 20px; }
+  .role h3 { margin:0; font-size:20px; font-weight:650; }
+  .role p { margin:3px 0 0; color:var(--sec); font-size:14px; max-width:60ch; }
+
+  /* Phone */
+  .phone { width:100%; max-width:258px; margin:0 auto; aspect-ratio:250/520;
+    background:#0b0b0a; border-radius:30px; padding:7px;
+    box-shadow:0 10px 30px rgba(0,0,0,.12); position:relative; }
+  @media (prefers-color-scheme:dark){ .phone{ box-shadow:0 10px 30px rgba(0,0,0,.5);} }
+  .sc { position:absolute; inset:7px; border-radius:24px; overflow:hidden;
+    background:var(--a-bg); color:var(--a-ink); display:flex; flex-direction:column;
+    font-size:11px; line-height:1.36; }
+  .sb { display:flex; justify-content:space-between; padding:8px 15px 2px;
+    font-size:10px; font-weight:600; flex:none; }
+  .ab { display:flex; align-items:center; gap:9px; padding:8px 15px 6px; flex:none;
+    font-size:15px; font-weight:600; }
+  .ab .bk { font-size:16px; color:var(--a-ink); }
+  .bd { flex:1; overflow:hidden; padding:6px 15px 12px; }
+
+  .pg { font-size:17px; font-weight:700; letter-spacing:-.01em; }
+  .h3a { font-size:13px; font-weight:600; }
+  .s { color:var(--a-sec); font-size:11px; }
+  .mt2{margin-top:2px;}.mt6{margin-top:6px;}.mt8{margin-top:8px;}.mt10{margin-top:10px;}
+  .mt12{margin-top:12px;}.mt14{margin-top:14px;}
+  .row{display:flex;align-items:center;gap:9px;}.between{justify-content:space-between;}
+  .col{display:flex;flex-direction:column;}
+  .big{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+
+  .card{background:var(--a-card);border:1px solid var(--a-line);border-radius:12px;padding:12px;}
+  .prim{background:var(--a-green);color:#fff;border-radius:11px;padding:11px;text-align:center;
+    font-weight:600;font-size:12px;}
+  .sec{background:transparent;color:var(--a-ink);border:1px solid var(--a-line);border-radius:11px;
+    padding:10px;text-align:center;font-weight:600;font-size:12px;}
+  .textbtn{color:var(--a-green);font-weight:600;font-size:11.5px;}
+  .pill{font-size:9.5px;font-weight:600;padding:2px 9px;border-radius:999px;}
+  .pill.ok{background:var(--a-green-pale);color:var(--green-d);}
+  .pill.warn{background:var(--a-warn-pale);color:#8a5a12;}
+  .pill.err{background:var(--a-err-pale);color:var(--a-err);}
+  .selrow{border:1.5px solid var(--a-green);background:var(--a-green-pale);}
+  .li{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid var(--a-line);}
+  .li:last-child{border-bottom:none;}
+  .lic{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;
+    font-size:15px;color:var(--a-ink);}
+  .lic.feat{background:var(--a-green-pale);color:var(--green-d);}
+  .arrow{margin-left:auto;color:var(--faint);font-size:13px;}
+  .selpill{display:flex;gap:6px;background:var(--a-fill);border-radius:999px;padding:3px;}
+  .selpill span{flex:1;text-align:center;font-size:10px;font-weight:600;padding:5px;border-radius:999px;color:var(--a-sec);}
+  .selpill span.on{background:#fff;color:var(--a-ink);}
+  .prog{height:3px;background:var(--a-line);border-radius:3px;}
+  .prog i{display:block;height:3px;background:var(--a-green);border-radius:3px;}
+  .propsel{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--a-line);
+    border-radius:11px;background:var(--a-card);}
+  .nav{display:flex;justify-content:space-around;border-top:1px solid var(--a-line);
+    padding:8px 0 10px;flex:none;background:var(--a-card);}
+  .nav .it{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8.5px;
+    color:var(--a-sec);font-weight:500;}
+  .nav .it .g{width:17px;height:17px;}
+  .nav .it.on{color:var(--a-green);}
+  .map{flex:1;position:relative;background:
+    linear-gradient(135deg,#9aa77f 0%,#8d9a6f 45%,#7f8d5f 100%);}
+  .map .pin{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--a-green);
+    border:2px solid #fff;transform:translate(-50%,-50%);color:#fff;font-size:8px;font-weight:800;
+    display:grid;place-items:center;}
+  .div{height:1px;background:var(--a-line);margin:9px 0;}
+
+  .foot{margin-top:60px;border-top:1px solid var(--line);padding-top:20px;color:var(--faint);
+    font-size:13px;}
+  .foot a{color:var(--green);}
+  a{color:var(--green);}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="kick">MOWR · UI direction v2</p>
+    <h1>A monochrome utility marketplace, with green as a signal.</h1>
+    <p class="lede">The new direction: MOWR should read like a fast, trusted service platform — Uber-simple, clean black-and-white, warm off-white grounds — not a gardening app. Green isn't decoration; it earns its place on one thing at a time: the primary action, a selected option, live progress, success, an available service. Thin borders instead of shadows; left-aligned headings; one clear action per screen.</p>
+    <p class="meta">Updated 24 Jul 2026 · target direction, being rolled through the Flutter theme + screens · follows your light/dark preference.</p>
+  </header>
+
+  <!-- DESIGN SYSTEM -->
+  <h2 class="sec">The system</h2>
+  <div class="ds">
+    <div class="block">
+      <h3>Palette · ~75% neutral / 15% dark / 10% green + status</h3>
+      <p class="note">Warm neutrals, not cold grey. Green is reserved for meaning.</p>
+      <div class="swatches">
+        <div class="sw"><i style="background:#f7f7f4"></i><div><b>#F7F7F4</b><br><span>Background</span></div></div>
+        <div class="sw"><i style="background:#fff"></i><div><b>#FFFFFF</b><br><span>Card</span></div></div>
+        <div class="sw"><i style="background:#121212"></i><div><b>#121212</b><br><span>Primary text</span></div></div>
+        <div class="sw"><i style="background:#696966"></i><div><b>#696966</b><br><span>Secondary text</span></div></div>
+        <div class="sw"><i style="background:#e4e4df"></i><div><b>#E4E4DF</b><br><span>Borders</span></div></div>
+        <div class="sw"><i style="background:#34734b"></i><div><b>#34734B</b><br><span>MOWR green</span></div></div>
+        <div class="sw"><i style="background:#e7f0e9"></i><div><b>#E7F0E9</b><br><span>Pale green</span></div></div>
+        <div class="sw"><i style="background:#e7a83b"></i><div><b>#E7A83B</b><br><span>Warning</span></div></div>
+        <div class="sw"><i style="background:#cb5148"></i><div><b>#CB5148</b><br><span>Error</span></div></div>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Type · Inter, left-aligned</h3>
+      <p class="note">One family, a tight scale, strong weight contrast — no rounded display fonts.</p>
+      <div class="scale">
+        <div><span class="lbl">Page · 28/700</span><span style="font-size:23px;font-weight:700;letter-spacing:-.01em">What needs doing?</span></div>
+        <div><span class="lbl">Section · 18/600</span><span style="font-size:17px;font-weight:600">Upcoming visit</span></div>
+        <div><span class="lbl">Body · 15/400</span><span style="font-size:15px">Lawn mowing, edging included.</span></div>
+        <div><span class="lbl">Support · 13/400</span><span style="font-size:13px;color:var(--sec)">Tuesday, 10:00–12:00</span></div>
+        <div><span class="lbl">Figure · 24–32/800</span><span style="font-size:24px;font-weight:800;letter-spacing:-.02em">£54.00</span></div>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Components</h3>
+      <p class="note">One obvious primary action per screen. Pills only for status.</p>
+      <div class="demo">
+        <button class="b-primary">Book a mow</button>
+        <button class="b-sec">Add photo</button>
+        <span class="b-text">Skip →</span>
+      </div>
+      <div class="demo" style="margin-top:14px">
+        <span class="pillx ok">Confirmed</span>
+        <span class="pillx warn">Payment required</span>
+        <span class="pillx err">Action needed</span>
+        <span class="pillx" style="background:var(--green-pale);color:var(--green-d)">● On the way</span>
+      </div>
+      <p class="note" style="margin:16px 0 0">Cards: 12px radius, 1px border, no shadow, 16px padding — and only when things genuinely belong together. Bottom nav is four items: Home · Bookings · Properties · Account.</p>
+    </div>
+    <div class="block">
+      <h3>Do &amp; don't</h3>
+      <ul class="rules">
+        <li><span class="do">Do</span> assign green a role: primary action, selected, live, success, available.</li>
+        <li><span class="do">Do</span> left-align headings and use full-width content.</li>
+        <li><span class="no">No</span> floating card around every heading + button.</li>
+        <li><span class="no">No</span> icons inside coloured circles, or several icon sets.</li>
+        <li><span class="no">No</span> bright-green backgrounds, big gradients, or centred marketing heroes.</li>
+        <li><span class="no">No</span> everything pill-shaped — pills mean status only.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CUSTOMER -->
+  <div class="role"><h3>Customer</h3><p>Clean home, one-question booking, clear status. Today MOWR does one thing — lawn mowing, with edging as an option — and does it well. The lawn personality lives in the name and photography, not the chrome.</p></div>
+  <div class="screens">
+
+    <!-- Home -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="bd">
+        <div class="propsel"><span>📍</span><div class="col"><span class="h3a">12 High Street</span><span class="s">Colchester</span></div><span class="arrow" style="margin-left:auto">▾</span></div>
+        <div class="pg mt14">Book a mow</div>
+        <div class="s mt2">Draw your lawn, get a price, book it in.</div>
+        <div class="li mt8"><div class="lic feat">▤</div><div class="col"><span class="h3a">Lawn mowing</span><span class="s">Measured &amp; priced instantly · edging optional</span></div><span class="arrow">›</span></div>
+        <div class="card mt12"><div class="row between"><span class="h3a">Lawn mowing</span><span class="pill ok">Confirmed</span></div><div class="s mt2">Tuesday, 10:00–12:00</div><div class="textbtn mt8">View booking →</div></div>
+      </div>
+      <div class="nav"><div class="it on"><div class="g">⌂</div>Home</div><div class="it"><div class="g">▤</div>Bookings</div><div class="it"><div class="g">◈</div>Properties</div><div class="it"><div class="g">◯</div>Account</div></div>
+    </div></div><figcaption><div class="cn">Home</div><div class="cd">Property selector + the mow flow (edging is an option within it, not a separate service). Structure leaves room for more services later.</div></figcaption></figure>
+
+    <!-- Booking: one question -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab"><span class="bk">←</span> <div style="flex:1"><div class="prog"><i style="width:66%"></i></div></div></div>
+      <div class="bd">
+        <div class="s">Step 4 of 6</div>
+        <div class="pg mt6">Which areas need mowing?</div>
+        <div class="mt10">
+          <div class="li selrow" style="border-radius:11px;padding:11px;margin-bottom:8px"><div class="lic">▤</div><div class="col"><span class="h3a">Front lawn</span><span class="s">120 m²</span></div><span style="margin-left:auto;color:var(--a-green)">✓</span></div>
+          <div class="card row" style="margin-bottom:8px"><div class="lic">▤</div><div class="col"><span class="h3a">Back lawn</span><span class="s">Tap to add</span></div><span class="arrow" style="margin-left:auto">＋</span></div>
+        </div>
+      </div>
+      <div style="padding:10px 15px"><div class="prim">Continue</div></div>
+    </div></div><figcaption><div class="cn">Booking — one question</div><div class="cd">Full-screen step, progress bar, sticky Continue. No form dumped at once.</div></figcaption></figure>
+
+    <!-- Review -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab"><span class="bk">←</span> Review</div>
+      <div class="bd">
+        <div class="s">12 High Street, Colchester</div>
+        <div class="pg mt2">Lawn mowing</div>
+        <div class="card mt10"><div class="row between"><span class="s">Front lawn · 120 m² · medium</span><span class="h3a">£28.80</span></div><div class="div"></div><div class="row between"><span class="s">Edging · 40 m</span><span class="h3a">£22.00</span></div></div>
+        <div class="row between mt12"><span class="s">🔁 Repeats fortnightly</span><span class="pill ok">3rd mow 20% off</span></div>
+        <div class="row between mt12" style="align-items:flex-end"><span class="h3a">Total</span><span class="big">£54.00</span></div>
+      </div>
+      <div style="padding:10px 15px"><div class="prim">Confirm booking</div></div>
+    </div></div><figcaption><div class="cn">Review &amp; price</div><div class="cd">Figures large &amp; bold; recurrence + loyalty as status, not decoration.</div></figcaption></figure>
+
+    <!-- Bookings list -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab">Bookings</div>
+      <div class="bd">
+        <div class="card"><div class="row between"><span class="h3a">Lawn mowing</span><span class="pill warn">Action needed</span></div><div class="s mt2">12 High Street · re-measured £138.20</div><div class="prim mt8" style="padding:8px">Review &amp; approve</div></div>
+        <div class="card mt8"><div class="row between"><span class="h3a">Lawn mowing</span><span class="pill ok">● On the way</span></div><div class="s mt2">Gate House · ETA ~10:40</div></div>
+        <div class="card mt8"><div class="row between"><span class="h3a">Lawn mowing</span><span class="pill">Completed</span></div><div class="s mt2">1 Sample St · £83.48</div></div>
+      </div>
+      <div class="nav"><div class="it"><div class="g">⌂</div>Home</div><div class="it on"><div class="g">▤</div>Bookings</div><div class="it"><div class="g">◈</div>Properties</div><div class="it"><div class="g">◯</div>Account</div></div>
+    </div></div><figcaption><div class="cn">Bookings</div><div class="cd">Status pills carry state; needs-action sorts up; ETA surfaced.</div></figcaption></figure>
+
+    <!-- Booking status / revision -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab"><span class="bk">←</span> Your booking</div>
+      <div class="bd">
+        <div class="pg">Lawn mowing</div>
+        <div class="s mt2">12 High Street · mower has arrived</div>
+        <div class="card mt10" style="border-color:var(--a-warn)">
+          <div class="h3a">Price updated on site</div>
+          <div class="s mt2">The lawn is larger than measured.</div>
+          <div class="row between mt8"><span class="s">You booked</span><span>£111.45</span></div>
+          <div class="row between"><span class="h3a">New price</span><span class="h3a">£138.20</span></div>
+        </div>
+      </div>
+      <div style="padding:10px 15px" class="col" ><div class="prim">Approve £138.20</div><div class="sec mt8">Decline</div></div>
+    </div></div><figcaption><div class="cn">Approve a re-measure</div><div class="cd">One primary action (green), decline is secondary. Warning border, no red panic.</div></figcaption></figure>
+
+  </div>
+
+  <!-- MOWER -->
+  <div class="role"><h3>Mower</h3><p>The operator's day: their route, what a job does to it, and getting paid. Same restraint — data-forward, green for live/earned.</p></div>
+  <div class="screens">
+
+    <!-- Mower home -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab">Today</div>
+      <div class="bd">
+        <div class="row" style="gap:18px"><div class="col"><span class="big" style="color:var(--a-green)">£184.60</span><span class="s">earned · 3 jobs</span></div><div class="col"><span class="big">4</span><span class="s">available</span></div></div>
+        <div class="card mt12"><div class="row between"><span class="h3a">In progress</span><span class="pill ok">● Arrived</span></div><div class="s mt2">5 Copford Lane, CO6 1DH</div><div class="prim mt8" style="padding:8px">Resume job</div></div>
+        <div class="li mt10"><div class="lic">◈</div><div class="col"><span class="h3a">Your route</span><span class="s">3 stops · 22m driving · finish 2:40pm</span></div><span class="arrow">›</span></div>
+      </div>
+      <div class="nav"><div class="it on"><div class="g">⌂</div>Home</div><div class="it"><div class="g">▤</div>Jobs</div><div class="it"><div class="g">£</div>Earnings</div><div class="it"><div class="g">◯</div>Account</div></div>
+    </div></div><figcaption><div class="cn">Mower home</div><div class="cd">Big earned figure, one live job, route summary as a list row.</div></figcaption></figure>
+
+    <!-- Day-fit sheet -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="bd" style="padding:0;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.28)">
+        <div style="background:var(--a-bg);border-radius:16px 16px 0 0;padding:15px">
+          <div style="width:34px;height:4px;background:var(--a-line);border-radius:3px;margin:0 auto 12px"></div>
+          <div class="h3a">7 Fordham Road</div><div class="s">Today · afternoon</div>
+          <div class="card mt8" style="background:var(--a-green-pale);border:none"><span class="h3a" style="color:var(--green-d)">Slots in as stop 2 of 4</span></div>
+          <div class="row between mt8"><span class="s">Extra driving</span><span>+8m</span></div>
+          <div class="row between"><span class="s">Day now finishes</span><span class="h3a">4:10pm</span></div>
+          <div class="prim mt10">Accept job</div><div class="sec mt8">Not now</div>
+        </div>
+      </div>
+    </div></div><figcaption><div class="cn">What it does to your day</div><div class="cd">Re-optimised route impact. Pale-green info, not a bright block.</div></figcaption></figure>
+
+    <!-- Route map -->
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab"><span class="bk">←</span> My route</div>
+      <div class="bd" style="padding:0;display:flex;flex-direction:column">
+        <div class="row" style="gap:6px;padding:8px 15px"><span class="selpill" style="padding:0"><span class="on" style="padding:4px 12px">Today</span></span><span class="s">3 stops · 22m · finish 2:40pm</span></div>
+        <div class="map"><div class="pin" style="left:30%;top:32%">1</div><div class="pin" style="left:62%;top:48%">2</div><div class="pin" style="left:44%;top:76%">3</div></div>
+        <div style="padding:8px 15px"><div class="li" style="border:none;padding:6px 0"><div class="lic" style="background:var(--a-green);color:#fff">1</div><div class="col"><span class="h3a">3 Wakes Colne Rise</span><span class="s">Arrive ~8:00am · morning</span></div><span class="textbtn" style="margin-left:auto">Navigate</span></div></div>
+      </div>
+    </div></div><figcaption><div class="cn">In-app route</div><div class="cd">Numbered stops; driving handed to the phone's maps app.</div></figcaption></figure>
+
+  </div>
+
+  <!-- ADMIN -->
+  <div class="role"><h3>Admin</h3><p>Operations at a glance. Dense, scannable, semantic colour — warning/critical stand out, everything else stays quiet.</p></div>
+  <div class="screens">
+
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab">Dashboard</div>
+      <div class="bd">
+        <div class="selpill"><span class="on">Today</span><span>7 days</span><span>30 days</span></div>
+        <div class="card mt8" style="border-color:var(--a-err)"><div class="h3a" style="color:var(--a-err)">Needs attention</div><div class="s mt2">1 job with no mower · 1 re-measure awaiting customer</div></div>
+        <div class="s mt10" style="font-weight:600;color:var(--a-ink)">Revenue</div>
+        <div class="row mt6" style="gap:8px">
+          <div class="card" style="flex:1;padding:9px"><div class="big" style="font-size:16px">£980</div><div class="s">Gross</div></div>
+          <div class="card" style="flex:1;padding:9px"><div class="big" style="font-size:16px">£147</div><div class="s">Commission</div></div>
+          <div class="card" style="flex:1;padding:9px"><div class="big" style="font-size:16px">£833</div><div class="s">Payouts</div></div>
+        </div>
+        <div class="s mt10" style="font-weight:600;color:var(--a-ink)">Jobs</div>
+        <div class="row mt6" style="gap:8px">
+          <div class="card" style="flex:1;padding:9px"><div class="big" style="font-size:16px">12</div><div class="s">Total</div></div>
+          <div class="card" style="flex:1;padding:9px"><div class="big" style="font-size:16px">4</div><div class="s">Done</div></div>
+          <div class="card" style="flex:1;padding:9px;background:var(--a-warn-pale);border-color:transparent"><div class="big" style="font-size:16px;color:#8a5a12">1</div><div class="s" style="color:#8a5a12">No mower</div></div>
+        </div>
+      </div>
+      <div class="nav"><div class="it on"><div class="g">▦</div>Dashboard</div><div class="it"><div class="g">◯</div>Mowers</div><div class="it"><div class="g">⚙</div>Settings</div></div>
+    </div></div><figcaption><div class="cn">Operations dashboard</div><div class="cd">Attention first; neutral tiles; warning tile earns its colour.</div></figcaption></figure>
+
+    <figure><div class="phone"><div class="sc">
+      <div class="sb"><span>9:41</span><span>▪▪▪ ▟</span></div>
+      <div class="ab">Discounts</div>
+      <div class="bd">
+        <div class="card"><div class="row between"><span class="h3a">Recurring — 3rd mow 20% off</span><span class="pill ok">On</span></div><div class="s mt2">20% off mow #3 · recurring</div></div>
+        <div class="card mt8"><div class="row between"><span class="h3a">Loyalty — 10% ongoing</span><span class="pill">Off</span></div><div class="s mt2">10% off every mow from #4</div></div>
+        <div class="textbtn mt12">＋ New discount</div>
+      </div>
+    </div></div><figcaption><div class="cn">Discount modeller</div><div class="cd">Plain list, status pill for on/off, one text action to add.</div></figcaption></figure>
+
+  </div>
+
+  <footer class="foot">
+    <p><strong>Where this is applied:</strong> the new palette, Inter type scale, 12px radii, thin borders and left-aligned app bars are now in the Flutter theme (<code>app_colors.dart</code> / <code>app_theme.dart</code>). The screens above show the target; a widget-level pass is still rolling the old bright-green cards, icon-in-circle avatars and centred headings over to this system. Green stays a signal, not a coat of paint.</p>
+  </footer>
+</div>

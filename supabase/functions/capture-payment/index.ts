@@ -79,21 +79,19 @@ Deno.serve(async (req) => {
       return json({ ok: true, captured: true, alreadyCaptured: true });
     }
 
-    // Mower's Connect account + commission (for the payout after capture).
+    // Mower's Connect account + effective commission for the payout. Commission
+    // is computed by mower_commission() — the single source of truth that folds
+    // in their admin override AND any performance tier they've earned (0020).
     const { data: mowerProfile } = await admin
       .from('profiles')
-      .select('stripe_connect_id, commission_pct')
+      .select('stripe_connect_id')
       .eq('id', booking.mower_id)
       .single();
-    const { data: rules } = await admin
-      .from('pricing_rules')
-      .select('default_commission_pct')
-      .eq('id', 1)
-      .single();
+    const { data: earnedCommission } = await admin.rpc('mower_commission', {
+      p_mower: booking.mower_id,
+    });
     const connectId = mowerProfile?.stripe_connect_id as string | null;
-    const commissionPct = Number(
-      mowerProfile?.commission_pct ?? rules?.default_commission_pct ?? 15,
-    );
+    const commissionPct = Number(earnedCommission ?? 15);
 
     // A big increase must be approved by the customer before we can take money.
     if (booking.approval_status === 'pending') {

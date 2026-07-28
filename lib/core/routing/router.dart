@@ -14,6 +14,14 @@ import '../../features/booking/presentation/steps/review_step.dart';
 import '../../features/booking/presentation/steps/account_step.dart';
 import '../../features/booking/presentation/steps/payment_step.dart';
 import '../../features/booking/presentation/steps/confirmation_step.dart';
+import '../../features/admin/presentation/admin_settings_screen.dart';
+import '../../features/admin/presentation/admin_shell.dart';
+import '../../features/booking/presentation/my_bookings_screen.dart';
+import '../../features/booking/presentation/booking_status_screen.dart';
+import '../../features/assistant/presentation/assistant_screen.dart';
+import '../../features/chat/presentation/chat_screen.dart';
+import '../../features/auth/presentation/sign_in_screen.dart';
+import '../../features/onboarding/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/onboarding/presentation/email_capture_screen.dart';
 import '../../features/payment/presentation/payment_methods_screen.dart';
@@ -23,10 +31,16 @@ import '../../features/mower/presentation/mower_job_detail_screen.dart';
 import '../../features/mower/presentation/mower_remeasure_screen.dart';
 import '../../features/mower/presentation/mower_earnings_screen.dart';
 import '../../features/mower/presentation/mower_payouts_screen.dart';
+import '../../features/mower/presentation/mower_route_screen.dart';
+import '../../features/mower/presentation/mower_verify_phone_screen.dart';
 
 final router = GoRouter(
-  initialLocation: '/',
+  initialLocation: SplashScreen.routePath,
   routes: [
+    GoRoute(
+      path: SplashScreen.routePath,
+      builder: (context, state) => const SplashScreen(),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const WelcomeScreen(),
@@ -34,6 +48,10 @@ final router = GoRouter(
     GoRoute(
       path: EmailCaptureScreen.routePath,
       builder: (context, state) => const EmailCaptureScreen(),
+    ),
+    GoRoute(
+      path: SignInScreen.routePath,
+      builder: (context, state) => const SignInScreen(),
     ),
 
     // Booking flow — returning-customer path
@@ -89,7 +107,10 @@ final router = GoRouter(
     ),
     GoRoute(
       path: AccountStepScreen.routePath,
-      builder: (context, state) => const AccountStepScreen(),
+      // '?next=/bookings' turns this into a standalone sign-in that returns
+      // there instead of continuing into the booking flow's payment step.
+      builder: (context, state) =>
+          AccountStepScreen(nextRoute: state.uri.queryParameters['next']),
     ),
     GoRoute(
       path: PaymentStepScreen.routePath,
@@ -104,7 +125,46 @@ final router = GoRouter(
       builder: (context, state) => const PaymentMethodsScreen(),
     ),
 
+    // Merged AI assistant — support Q&A + record actions + booking hand-off.
+    GoRoute(
+      path: AssistantScreen.routePath,
+      builder: (context, state) => const AssistantScreen(),
+    ),
+
+    // Customer post-booking. '/bookings/:id' is where an on-site re-measure
+    // gets approved, so it must stay reachable after checkout.
+    GoRoute(
+      path: MyBookingsScreen.routePath,
+      builder: (context, state) => const MyBookingsScreen(),
+    ),
+    GoRoute(
+      path: '${BookingStatusScreen.routeBase}/:id',
+      builder: (context, state) =>
+          BookingStatusScreen(bookingId: state.pathParameters['id']!),
+    ),
+
+    // Live customer↔mower chat (open while a job is under way). Shared by both
+    // sides; the send RPC enforces participation + the open window server-side.
+    GoRoute(
+      path: '/chat/:id',
+      builder: (context, state) => ChatScreen(
+        bookingId: state.pathParameters['id']!,
+        title: state.uri.queryParameters['title'],
+      ),
+    ),
+
     // Mower side
+    // Admin. There is deliberately no in-app way to become an admin — the role
+    // is set on the profile row by hand (see migration 0013).
+    GoRoute(
+      path: AdminShell.routePath,
+      builder: (context, state) => const AdminShell(),
+    ),
+    GoRoute(
+      path: AdminSettingsScreen.routePath,
+      builder: (context, state) => const AdminSettingsScreen(),
+    ),
+
     GoRoute(
       path: MowerAuthScreen.routePath,
       builder: (context, state) => const MowerAuthScreen(),
@@ -130,6 +190,14 @@ final router = GoRouter(
     GoRoute(
       path: MowerPayoutsScreen.routePath,
       builder: (context, state) => const MowerPayoutsScreen(),
+    ),
+    GoRoute(
+      path: MowerVerifyPhoneScreen.routePath,
+      builder: (context, state) => const MowerVerifyPhoneScreen(),
+    ),
+    GoRoute(
+      path: MowerRouteScreen.routePath,
+      builder: (context, state) => const MowerRouteScreen(),
     ),
   ],
 );

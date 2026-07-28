@@ -5,6 +5,7 @@ import 'core/config/app_config.dart';
 import 'core/routing/router.dart';
 import 'core/supabase/supabase_client.dart';
 import 'core/theme/app_theme.dart';
+import 'features/booking/providers/pricing_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +19,20 @@ Future<void> main() async {
     Stripe.publishableKey = AppConfig.stripePublishableKey;
     await Stripe.instance.applySettings();
   }
-  runApp(const ProviderScope(child: MowrApp()));
+  final container = ProviderContainer();
+  // Pull the admin-editable rates in before the first screen can quote. Best
+  // effort — falls back to the in-code defaults if it fails.
+  if (AppConfig.hasSupabase) {
+    await loadPricingRules(container);
+    await loadDiscountRules(container);
+  }
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const MowrApp(),
+    ),
+  );
 }
 
 class MowrApp extends StatelessWidget {

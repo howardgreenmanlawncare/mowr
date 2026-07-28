@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,6 +30,44 @@ class ScheduleStepScreen extends ConsumerWidget {
     }
   }
 
+  /// Lets the customer set a bespoke "every N days" repeat when the presets
+  /// (weekly / 2 / 3 weeks) don't fit.
+  Future<void> _pickCustomDays(
+      BuildContext context, WidgetRef ref, int current) async {
+    final controller = TextEditingController(
+        text: (current > 0 ? current : 10).toString());
+    final days = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Every how many days?'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: const InputDecoration(
+              labelText: 'Repeat every', suffixText: 'days'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              final v = int.tryParse(controller.text.trim());
+              Navigator.pop(ctx, (v != null && v >= 1) ? v : null);
+            },
+            child: const Text('Set'),
+          ),
+        ],
+      ),
+    );
+    if (days != null) {
+      ref
+          .read(bookingDraftProvider.notifier)
+          .setRecurrence(RecurrenceInterval(days));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -49,7 +88,7 @@ class ScheduleStepScreen extends ConsumerWidget {
           Text(
             'When would you like it done?',
             style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900, height: 1.1),
+                ?.copyWith(fontWeight: FontWeight.w700, height: 1.1),
           ),
           const SizedBox(height: 16),
           _ChoiceCard(
@@ -87,6 +126,60 @@ class ScheduleStepScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 24),
+          Text('How often?', style: theme.textTheme.labelLarge),
+          const SizedBox(height: 4),
+          Text(
+            'Set up a repeat and keep your lawn in shape — loyalty discounts '
+            'apply to recurring mows.',
+            style:
+                theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final r in RecurrenceInterval.presets)
+                ChoiceChip(
+                  label: Text(r.label),
+                  selected: draft.recurrence == r,
+                  onSelected: (_) => notifier.setRecurrence(r),
+                ),
+              ChoiceChip(
+                label: Text(
+                    draft.recurrence.isCustom ? draft.recurrence.label : 'Custom…'),
+                selected: draft.recurrence.isCustom,
+                onSelected: (_) =>
+                    _pickCustomDays(context, ref, draft.recurrence.days),
+              ),
+            ],
+          ),
+          if (draft.recurrence.isRecurring) ...[
+            const SizedBox(height: 20),
+            Text('Preferred day', style: theme.textTheme.labelLarge),
+            const SizedBox(height: 4),
+            Text(
+              'Your repeat mows will land on this day. The first is the '
+              'next one coming up.',
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var wd = 1; wd <= 7; wd++)
+                  ChoiceChip(
+                    label: Text(_weekdayLabel(wd)),
+                    selected:
+                        !draft.asap && draft.scheduledDate?.weekday == wd,
+                    onSelected: (_) =>
+                        notifier.setScheduledDate(_nextWeekday(wd)),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 24),
           Text(
             'Will you be home to let the mower in?',
             style: theme.textTheme.labelLarge,
@@ -111,6 +204,20 @@ class ScheduleStepScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+const _weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+String _weekdayLabel(int weekday) => _weekdayNames[weekday - 1];
+
+/// The next date (from tomorrow) that falls on [weekday] (1 = Mon … 7 = Sun).
+DateTime _nextWeekday(int weekday) {
+  final now = DateTime.now();
+  var d = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+  while (d.weekday != weekday) {
+    d = d.add(const Duration(days: 1));
+  }
+  return d;
 }
 
 String _windowLabel(TimeWindow w) => switch (w) {
@@ -147,38 +254,41 @@ class _ChoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
-      color: selected ? cs.primaryContainer.withValues(alpha: 0.5) : Colors.white,
+      color: selected ? cs.primaryContainer : cs.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: selected ? cs.primary : Colors.grey.shade200,
-          width: selected ? 2 : 1,
+          color: selected ? cs.primary : cs.outline,
+          width: selected ? 1.5 : 1,
         ),
       ),
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: cs.primaryContainer,
-                child: Icon(icon, color: cs.onPrimaryContainer),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: selected ? cs.surface : cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon,
+                    size: 20, color: selected ? cs.primary : cs.onSurface),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 15)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: TextStyle(
-                            color: Colors.grey.shade600, fontSize: 13)),
+                    Text(title, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 1),
+                    Text(subtitle, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),

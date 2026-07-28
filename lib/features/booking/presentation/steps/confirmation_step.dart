@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/booking_draft_provider.dart';
 import '../booking_shell.dart';
+import '../my_bookings_screen.dart';
 
 class ConfirmationStepScreen extends ConsumerWidget {
   const ConfirmationStepScreen({super.key});
@@ -22,18 +23,17 @@ class ConfirmationStepScreen extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 24),
-          CircleAvatar(
-            radius: 44,
-            backgroundColor: cs.primaryContainer,
-            child: Icon(Icons.check_rounded,
-                size: 52, color: cs.onPrimaryContainer),
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              color: cs.primaryContainer,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(Icons.check_rounded, size: 44, color: cs.primary),
           ),
           const SizedBox(height: 24),
-          Text(
-            'You’re all set!',
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
+          Text('You’re all set', style: theme.textTheme.headlineSmall),
           const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -43,17 +43,25 @@ class ConfirmationStepScreen extends ConsumerWidget {
               'only charged once the job is done.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: Colors.grey.shade700, height: 1.4),
+                  ?.copyWith(color: cs.onSurfaceVariant, height: 1.4),
             ),
           ),
           const SizedBox(height: 32),
           FilledButton.icon(
             onPressed: () {
               ref.read(bookingDraftProvider.notifier).reset();
+              context.go(MyBookingsScreen.routePath);
+            },
+            icon: const Icon(Icons.receipt_long_rounded),
+            label: const Text('Track my booking'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              ref.read(bookingDraftProvider.notifier).reset();
               context.go('/');
             },
-            icon: const Icon(Icons.home_rounded),
-            label: const Text('Back to home'),
+            child: const Text('Back to home'),
           ),
         ],
       ),
