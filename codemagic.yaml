@@ -9,7 +9,7 @@
 #   3. Create an App Store Connect API key (Users and Access → Integrations →
 #        App Store Connect API): download the .p8, note the Key ID + Issuer ID.
 #   4. In Codemagic: Teams → Integrations → App Store Connect → add that key,
-#        and name the integration "mowr-asc" (or change the name
+#        and name the integration "mowr" (or change the name
 #        under `integrations` below to match).
 #   5. Connect this git repo to Codemagic (GitHub/GitLab/Bitbucket), then run
 #        the `ios-testflight` workflow.
@@ -39,7 +39,7 @@ workflows:
           include: true
           source: true
     integrations:
-      app_store_connect: mowr-asc
+      app_store_connect: mowr
     environment:
       # No automatic `ios_signing` block — we create the cert + profile
       # explicitly below via the App Store Connect API key. (The automatic block
