@@ -41,9 +41,9 @@ workflows:
     integrations:
       app_store_connect: mowr-asc
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: uk.co.mowr.mowr
+      # No automatic `ios_signing` block — we create the cert + profile
+      # explicitly below via the App Store Connect API key. (The automatic block
+      # only *fetches* existing profiles and fails before scripts run.)
       vars:
         BUNDLE_ID: "uk.co.mowr.mowr"
       flutter: stable
@@ -53,6 +53,10 @@ workflows:
       - name: Set up code signing (creates cert + profile via the API key)
         script: |
           keychain initialize
+          # Distribution certificate: create one on a fresh account, else reuse.
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save \
+            || app-store-connect list-certificates --type IOS_DISTRIBUTION --save
+          # Provisioning profile for the bundle id (create if missing).
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
