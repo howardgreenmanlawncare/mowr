@@ -1,0 +1,73 @@
+# MOWR — Codemagic CI: build the iOS app on cloud macOS and ship it to
+# TestFlight. (No Mac needed locally.)
+#
+# ONE-TIME SETUP you must do (account actions — I can't do these for you):
+#   1. Enrol in the Apple Developer Program ($99/yr)  — required for TestFlight.
+#   2. In App Store Connect, create an app:
+#        Bundle ID: uk.co.mowr.mowr   ·   Name: MOWR   ·   Platform: iOS
+#        Note its numeric "Apple ID" (App Store Connect → your app → App
+#        Information → General → Apple ID) and paste it into APP_STORE_APPLE_ID
+#        below.
+#   3. Create an App Store Connect API key (Users and Access → Integrations →
+#        App Store Connect API): download the .p8, note the Key ID + Issuer ID.
+#   4. In Codemagic: Teams → Integrations → App Store Connect → add that key,
+#        and name the integration "MOWR App Store Connect" (or change the name
+#        under `integrations` below to match).
+#   5. Connect this git repo to Codemagic (GitHub/GitLab/Bitbucket), then run
+#        the `ios-testflight` workflow.
+#
+# Optional: to enable Mapbox tiles + live postcode lookup in the build, add
+# encrypted env vars MAPBOX_TOKEN and IDEAL_POSTCODES_API_KEY in Codemagic and
+# uncomment the two --dart-define lines below. Without them the app still runs
+# (Esri imagery + sample addresses). Supabase + Stripe test keys are built in.
+
+workflows:
+  ios-testflight:
+    name: MOWR iOS · TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: MOWR App Store Connect
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: uk.co.mowr.mowr
+      vars:
+        # Paste the numeric Apple ID of the App Store Connect app record here:
+        APP_STORE_APPLE_ID: 0000000000
+        BUNDLE_ID: "uk.co.mowr.mowr"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Fetch signing files
+        script: |
+          xcode-project use-profiles
+      - name: Flutter packages
+        script: |
+          flutter pub get
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Build IPA
+        script: |
+          # Auto-increment the build number from the latest TestFlight build.
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0) + 1))
+          flutter build ipa --release \
+            --build-name=1.0.0 \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+          # To enable optional keys, add these back on the flutter build line:
+          #   --dart-define=MAPBOX_TOKEN=$MAPBOX_TOKEN \
+          #   --dart-define=IDEAL_POSTCODES_API_KEY=$IDEAL_POSTCODES_API_KEY
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Leave beta groups empty to just upload; add group names to auto-assign:
+        # beta_groups:
+        #   - Internal testers
