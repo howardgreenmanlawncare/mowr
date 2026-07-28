@@ -24,6 +24,20 @@ workflows:
     name: MOWR iOS · TestFlight
     instance_type: mac_mini_m2
     max_build_duration: 60
+    # Auto-build on push (like `eas build`): once the repo is connected in
+    # Codemagic (which installs the webhook), pushing these branches fires a
+    # build → TestFlight. No need to click "Start build".
+    triggering:
+      events:
+        - push
+      cancel_previous_builds: true
+      branch_patterns:
+        - pattern: feat/mower-earnings-and-payouts
+          include: true
+          source: true
+        - pattern: main
+          include: true
+          source: true
     integrations:
       app_store_connect: mowr-asc
     environment:
