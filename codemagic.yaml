@@ -51,12 +51,18 @@ workflows:
         script: |
           set -e
           keychain initialize
-          # 1) Distribution certificate — generates + keeps the private key for
-          #    this build. Fails loudly if the account is at its cert limit.
-          app-store-connect create-certificate --type IOS_DISTRIBUTION --save
-          # 2) App Store provisioning profile for the bundle id (create if none).
+          # 1) Generate a private key, then create a distribution certificate
+          #    from it (create-certificate can't invent its own key).
+          openssl genrsa -out /tmp/cert_key.pem 2048
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --certificate-key=@file:/tmp/cert_key.pem \
+            --save
+          # 2) Create/fetch the App Store provisioning profile, tied to that key.
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE --create
+            --type IOS_APP_STORE \
+            --certificate-key=@file:/tmp/cert_key.pem \
+            --create
           # 3) Import the cert into the keychain and apply the profile.
           keychain add-certificates
           xcode-project use-profiles
