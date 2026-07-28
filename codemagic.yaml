@@ -62,11 +62,13 @@ workflows:
           #    it, then create one we fully control. Safe: MOWR's only iOS
           #    pipeline. Best-effort (won't fail the build if none exist).
           set +e
-          for CID in $(app-store-connect certificates list \
-              --certificate-type IOS_DISTRIBUTION --json 2>/dev/null \
-              | jq -r '.[].id'); do
+          app-store-connect certificates list --json 2>/dev/null > /tmp/certs.json
+          echo "Existing certificates:"
+          jq -r '.[] | "\(.id)\t\(.attributes.certificateType)"' /tmp/certs.json 2>/dev/null
+          for CID in $(jq -r '.[] | select(.attributes.certificateType | test("DISTRIBUTION")) | .id' /tmp/certs.json 2>/dev/null); do
             echo "Revoking existing distribution certificate $CID"
-            app-store-connect certificates delete "$CID" --yes
+            app-store-connect certificates delete "$CID" --yes 2>/dev/null \
+              || app-store-connect certificates delete "$CID"
           done
           set -e
           # 1) Generate a private key, then create a distribution certificate
