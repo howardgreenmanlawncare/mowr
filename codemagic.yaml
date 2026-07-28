@@ -56,8 +56,21 @@ workflows:
           echo "PRIVATE_KEY present:${APP_STORE_CONNECT_PRIVATE_KEY:+YES}"
           # ------------------------------------------------------------
           keychain initialize
+          # 0) Apple caps distribution certificates. In CI we mint a fresh
+          #    signing key each run, so any pre-existing distribution cert has
+          #    no matching private key here and only occupies a slot — revoke
+          #    it, then create one we fully control. Safe: MOWR's only iOS
+          #    pipeline. Best-effort (won't fail the build if none exist).
+          set +e
+          for CID in $(app-store-connect certificates list \
+              --certificate-type IOS_DISTRIBUTION --json 2>/dev/null \
+              | jq -r '.[].id'); do
+            echo "Revoking existing distribution certificate $CID"
+            app-store-connect certificates delete "$CID" --yes
+          done
+          set -e
           # 1) Generate a private key, then create a distribution certificate
-          #    from it, passing the API creds explicitly.
+          #    from it (API creds are auto-read from the injected env vars).
           openssl genrsa -out /tmp/cert_key.pem 2048
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
