@@ -5,9 +5,7 @@
 #   1. Enrol in the Apple Developer Program ($99/yr)  — required for TestFlight.
 #   2. In App Store Connect, create an app:
 #        Bundle ID: uk.co.mowr.mowr   ·   Name: MOWR   ·   Platform: iOS
-#        Note its numeric "Apple ID" (App Store Connect → your app → App
-#        Information → General → Apple ID) and paste it into APP_STORE_APPLE_ID
-#        below.
+#        (Codemagic matches the app by this bundle id — no Apple ID needed.)
 #   3. Create an App Store Connect API key (Users and Access → Integrations →
 #        App Store Connect API): download the .p8, note the Key ID + Issuer ID.
 #   4. In Codemagic: Teams → Integrations → App Store Connect → add that key,
@@ -33,8 +31,6 @@ workflows:
         distribution_type: app_store
         bundle_identifier: uk.co.mowr.mowr
       vars:
-        # Paste the numeric Apple ID of the App Store Connect app record here:
-        APP_STORE_APPLE_ID: 0000000000
         BUNDLE_ID: "uk.co.mowr.mowr"
       flutter: stable
       xcode: latest
@@ -51,11 +47,11 @@ workflows:
           find . -name "Podfile" -execdir pod install \;
       - name: Build IPA
         script: |
-          # Auto-increment the build number from the latest TestFlight build.
-          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0) + 1))
+          # Codemagic provides an auto-incrementing $BUILD_NUMBER per build —
+          # no Apple ID lookup needed.
           flutter build ipa --release \
             --build-name=1.0.0 \
-            --build-number=$BUILD_NUMBER \
+            --build-number=$(($BUILD_NUMBER)) \
             --export-options-plist=/Users/builder/export_options.plist
           # To enable optional keys, add these back on the flutter build line:
           #   --dart-define=MAPBOX_TOKEN=$MAPBOX_TOKEN \
